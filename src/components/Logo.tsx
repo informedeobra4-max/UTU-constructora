@@ -1,3 +1,5 @@
+import logoUrl from '../assets/logo.jpeg';
+
 interface LogoProps {
   className?: string;
   onClick?: () => void;
@@ -6,7 +8,7 @@ interface LogoProps {
 export default function Logo({ className = "h-8 w-auto", onClick }: LogoProps) {
   return (
     <img 
-      src="/logo.jpeg" 
+      src={logoUrl} 
       alt="UTU Constructora" 
       className={`object-contain ${className} ${onClick ? 'cursor-pointer hover:opacity-80 transition-opacity' : ''}`}
       onClick={onClick}

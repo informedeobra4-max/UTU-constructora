@@ -3,6 +3,7 @@ import { ArrowLeft, Briefcase, FileText, Hammer, Search } from 'lucide-react';
 import { Screen } from '../types';
 import Logo from './Logo';
 import { supabase } from '../lib/supabaseClient';
+import logoUrl from '../assets/logo.jpeg';
 
 interface GastosViewProps {
   navigate: (screen: Screen) => void;
@@ -203,7 +204,7 @@ export default function GastosView({ navigate }: GastosViewProps) {
             </p>
           </div>
           <div className="w-32">
-            <img src="/logo.jpeg" alt="UTU Constructora Logo" className="w-full h-auto object-contain" />
+            <img src={logoUrl} alt="UTU Constructora Logo" className="w-full h-auto object-contain" />
           </div>
         </div>
 
