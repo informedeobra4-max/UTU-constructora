@@ -1,77 +1,80 @@
-import { ArrowLeft, Bell, CalendarClock, CircleDollarSign, AlertTriangle, Play } from 'lucide-react';
-import { useState } from 'react';
+import { ArrowLeft, Bell, RefreshCw, Send, MessageSquare } from 'lucide-react';
+import { useState, useEffect } from 'react';
 import { Screen } from '../types';
 import Logo from './Logo';
-import { OBRAS_COLORS } from './CalendarView';
-import { playNotificationSound } from '../audio';
 
 interface NotificationsProps {
   navigate: (screen: Screen) => void;
 }
 
-export default function Notifications({ navigate }: NotificationsProps) {
-  const [notifications, setNotifications] = useState([
-    {
-      id: 1,
-      type: 'payment',
-      title: 'Día de Pagos (Quincena)',
-      description: 'Hoy es el día de pago para los contratistas de albañilería.',
-      time: 'Hace 2 horas',
-      isNew: true,
-      icon: CircleDollarSign,
-      obraId: '1' // A3 Portillo
-    },
-    {
-      id: 2,
-      type: 'due',
-      title: 'Vencimiento de Expensas',
-      description: 'Recordatorio: Vencimiento de expensas en Barrio Norte.',
-      time: 'Hace 5 horas',
-      isNew: true,
-      icon: CalendarClock,
-      obraId: '3' // Casa 42
-    },
-    {
-      id: 3,
-      type: 'alert',
-      title: 'Alerta de Materiales',
-      description: 'Stock bajo de Cemento Loma Negra en el depósito principal.',
-      time: 'Ayer',
-      isNew: false,
-      icon: AlertTriangle,
-      obraId: 'general'
-    },
-    {
-      id: 4,
-      type: 'system',
-      title: 'Nuevo Certificado Registrado',
-      description: 'El Arq. González ha registrado un nuevo avance de obra.',
-      time: 'Ayer',
-      isNew: false,
-      icon: Bell,
-      obraId: '2' // S1 Lar de Boedo
-    }
-  ]);
+interface Obra {
+  id: number;
+  name: string;
+}
 
-  const handleMarkAsRead = (id: number) => {
-    setNotifications(prev => prev.map(n => 
-      n.id === id ? { ...n, isNew: false } : n
-    ));
+interface AppNotification {
+  id: number;
+  obraId: number | 'general';
+  obraName: string;
+  message: string;
+  time: string;
+  isNew: boolean;
+}
+
+export default function Notifications({ navigate }: NotificationsProps) {
+  const [obras, setObras] = useState<Obra[]>([]);
+  const [notifications, setNotifications] = useState<AppNotification[]>([]);
+  
+  // New message form state
+  const [selectedObra, setSelectedObra] = useState<number | 'general'>('general');
+  const [newMessage, setNewMessage] = useState('');
+
+  const loadData = () => {
+    const savedObras = localStorage.getItem('obras_list');
+    if (savedObras) {
+      setObras(JSON.parse(savedObras));
+    }
+    
+    const savedNotifs = localStorage.getItem('app_notificaciones');
+    if (savedNotifs) {
+      setNotifications(JSON.parse(savedNotifs));
+    }
   };
 
-  const simulateIncomingNotification = () => {
-    playNotificationSound();
-    const newNotif = {
+  useEffect(() => {
+    loadData();
+  }, []);
+
+  const handleMarkAsRead = (id: number) => {
+    const updated = notifications.map(n => 
+      n.id === id ? { ...n, isNew: false } : n
+    );
+    setNotifications(updated);
+    localStorage.setItem('app_notificaciones', JSON.stringify(updated));
+  };
+
+  const handleAddMessage = () => {
+    if (!newMessage.trim()) return;
+
+    let obraName = 'General';
+    if (selectedObra !== 'general') {
+      const obra = obras.find(o => o.id.toString() === selectedObra.toString());
+      if (obra) obraName = obra.name;
+    }
+
+    const newNotif: AppNotification = {
       id: Date.now(),
-      type: 'alert',
-      title: 'Nueva Actualización',
-      description: 'Llegaron los materiales a la obra. Revisar remito adjunto.',
-      time: 'Justo ahora',
-      isNew: true,
-      icon: Bell,
-      obraId: '3'
+      obraId: selectedObra,
+      obraName: obraName,
+      message: newMessage.trim(),
+      time: new Date().toLocaleString('es-AR', { dateStyle: 'short', timeStyle: 'short' }),
+      isNew: true
     };
-    setNotifications(prev => [newNotif, ...prev]);
+
+    const updated = [newNotif, ...notifications];
+    setNotifications(updated);
+    localStorage.setItem('app_notificaciones', JSON.stringify(updated));
+    setNewMessage('');
   };
 
   return (
@@ -84,68 +87,95 @@ export default function Notifications({ navigate }: NotificationsProps) {
             <ArrowLeft className="w-5 h-5" />
           </button>
         </div>
-        <h1 className="flex-1 ml-3 text-right text-text-main font-semibold text-lg">Notificaciones</h1>
+        <h1 className="flex-1 ml-3 text-right text-text-main font-semibold text-lg">Mensajes y Alertas</h1>
       </header>
 
-      <main className="flex-1 px-4 py-6 max-w-md mx-auto w-full space-y-4">
+      <main className="flex-1 px-4 py-6 max-w-md mx-auto w-full space-y-6">
         
-        {/* Simulate button for testing */}
-        <button 
-          onClick={simulateIncomingNotification}
-          className="w-full mb-2 bg-surface hover:bg-surface-hover border border-surface-hover rounded-xl p-3 flex items-center justify-center gap-2 text-text-muted transition-colors text-sm font-bold"
-        >
-          <Play className="w-4 h-4" />
-          Simular Notificación Entrante
-        </button>
-
-        {notifications.map((notif) => {
-          const Icon = notif.icon;
-          const obraData = OBRAS_COLORS[notif.obraId] || OBRAS_COLORS['general'];
+        {/* Formulario para nuevo mensaje */}
+        <div className="bg-surface rounded-2xl p-4 border border-surface-hover">
+          <h2 className="text-sm font-bold text-text-main mb-3 uppercase tracking-wider">Nuevo Mensaje</h2>
           
-          return (
+          <select 
+            value={selectedObra}
+            onChange={(e) => setSelectedObra(e.target.value === 'general' ? 'general' : Number(e.target.value))}
+            className="w-full bg-background border border-surface-hover rounded-xl px-4 py-3 text-text-main focus:outline-none focus:border-primary mb-3 text-sm"
+          >
+            <option value="general">Mensaje General</option>
+            {obras.map(obra => (
+              <option key={obra.id} value={obra.id}>{obra.name}</option>
+            ))}
+          </select>
+
+          <div className="relative">
+            <input
+              type="text"
+              value={newMessage}
+              onChange={(e) => setNewMessage(e.target.value)}
+              placeholder="Escribe una alerta o mensaje..."
+              className="w-full bg-background border border-surface-hover rounded-xl pl-4 pr-12 py-3 text-text-main focus:outline-none focus:border-primary text-sm"
+            />
+            <button 
+              onClick={handleAddMessage}
+              className="absolute right-2 top-1/2 -translate-y-1/2 p-2 text-primary hover:text-primary-hover bg-primary/10 rounded-lg transition-colors"
+            >
+              <Send className="w-4 h-4" />
+            </button>
+          </div>
+        </div>
+
+        <div className="flex items-center justify-between">
+          <h2 className="text-sm font-bold text-text-muted uppercase tracking-wider">Bandeja de Entrada</h2>
+          <button 
+            onClick={loadData}
+            className="flex items-center gap-1.5 px-3 py-1.5 text-xs font-bold text-primary bg-primary/10 rounded-lg hover:bg-primary/20 transition-colors"
+          >
+            <RefreshCw className="w-3.5 h-3.5" />
+            ACTUALIZAR
+          </button>
+        </div>
+
+        <div className="space-y-3">
+          {notifications.map((notif) => (
             <div 
               key={notif.id} 
               onClick={() => handleMarkAsRead(notif.id)}
               className={`p-4 rounded-2xl border cursor-pointer transition-all ${notif.isNew ? 'border-primary/50 bg-surface' : 'border-surface bg-background-alt'} flex gap-4 relative overflow-hidden`}
             >
-              <div className={`absolute top-0 left-0 w-1.5 h-full transition-colors ${notif.isNew ? obraData.color.replace('/20', '') : 'bg-surface-hover'}`} />
+              <div className={`absolute top-0 left-0 w-1.5 h-full transition-colors ${notif.isNew ? 'bg-primary' : 'bg-surface-hover'}`} />
               
               {notif.isNew && (
                 <div className="absolute top-0 right-0 w-2 h-2 m-4 bg-primary rounded-full"></div>
               )}
               
-              <div className={`w-12 h-12 rounded-full ${obraData.color} flex items-center justify-center flex-shrink-0 mt-1 ml-1 transition-opacity ${notif.isNew ? 'opacity-100' : 'opacity-60'}`}>
-                <Icon className={`w-6 h-6 ${obraData.textColor}`} />
+              <div className={`w-12 h-12 rounded-full ${notif.isNew ? 'bg-primary/20' : 'bg-surface-hover'} flex items-center justify-center flex-shrink-0 mt-1 ml-1 transition-opacity ${notif.isNew ? 'opacity-100' : 'opacity-60'}`}>
+                <MessageSquare className={`w-5 h-5 ${notif.isNew ? 'text-primary' : 'text-text-muted'}`} />
               </div>
               
               <div className="flex-1 min-w-0 pr-4">
                 <div className="flex items-start justify-between">
-                  <h3 className={`font-bold text-base truncate transition-colors ${notif.isNew ? 'text-text-main' : 'text-text-muted'}`}>
-                    {notif.title}
-                  </h3>
+                  <span className={`inline-block mb-1 text-[10px] uppercase font-bold tracking-wider px-2 py-0.5 rounded transition-opacity ${notif.isNew ? 'bg-primary/20 text-primary' : 'bg-surface-hover text-text-muted'} ${notif.isNew ? 'opacity-100' : 'opacity-60'}`}>
+                    {notif.obraName}
+                  </span>
                 </div>
                 
-                <span className={`inline-block mt-1 mb-1 text-[10px] uppercase font-bold tracking-wider px-2 py-0.5 rounded transition-opacity ${obraData.color} ${obraData.textColor} ${notif.isNew ? 'opacity-100' : 'opacity-60'}`}>
-                  {obraData.name}
-                </span>
-
-                <p className={`text-sm mt-1 line-clamp-2 transition-colors ${notif.isNew ? 'text-text-muted' : 'text-secondary'}`}>
-                  {notif.description}
+                <p className={`text-sm mt-1 line-clamp-3 transition-colors ${notif.isNew ? 'text-text-main font-medium' : 'text-text-muted'}`}>
+                  {notif.message}
                 </p>
-                <div className="text-xs text-secondary mt-2 font-medium">
+                <div className="text-[10px] text-secondary mt-2 font-bold uppercase tracking-wider">
                   {notif.time}
                 </div>
               </div>
             </div>
-          );
-        })}
+          ))}
 
-        {notifications.length === 0 && (
-          <div className="flex flex-col items-center justify-center py-20 text-text-muted">
-            <Bell className="w-12 h-12 mb-4 opacity-20" />
-            <p>No tienes notificaciones nuevas</p>
-          </div>
-        )}
+          {notifications.length === 0 && (
+            <div className="flex flex-col items-center justify-center py-20 text-text-muted">
+              <Bell className="w-12 h-12 mb-4 opacity-20" />
+              <p>No tienes mensajes</p>
+            </div>
+          )}
+        </div>
       </main>
     </div>
   );
