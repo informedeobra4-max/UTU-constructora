@@ -13,6 +13,7 @@ export default function GastosView({ navigate }: GastosViewProps) {
   const [filterType, setFilterType] = useState<'todos' | 'materiales' | 'mano_obra' | 'varios'>('todos');
   const [allExpenses, setAllExpenses] = useState<any[]>([]);
   const [isLoading, setIsLoading] = useState(true);
+  const [failedImages, setFailedImages] = useState<Record<string, boolean>>({});
 
   useEffect(() => {
     fetchExpenses();
@@ -162,13 +163,14 @@ export default function GastosView({ navigate }: GastosViewProps) {
                   <p className="text-text-muted text-sm truncate">{exp.title}</p>
                   <div className="text-xs text-secondary mt-1">{exp.subtitle}</div>
                   
-                  {localStorage.getItem(`gasto_image_${exp.id}`) && (
+                  {!failedImages[exp.id] && (
                     <div className="mt-3 relative w-20 h-20 rounded-lg overflow-hidden border border-surface-hover">
                       <img 
-                        src={localStorage.getItem(`gasto_image_${exp.id}`)!} 
+                        src={supabase.storage.from('comprobantes').getPublicUrl(exp.id).data.publicUrl} 
                         alt="Comprobante" 
-                        className="w-full h-full object-cover"
-                        onClick={() => window.open(localStorage.getItem(`gasto_image_${exp.id}`)!, '_blank')}
+                        className="w-full h-full object-cover cursor-pointer"
+                        onError={() => setFailedImages(prev => ({ ...prev, [exp.id]: true }))}
+                        onClick={() => window.open(supabase.storage.from('comprobantes').getPublicUrl(exp.id).data.publicUrl, '_blank')}
                       />
                     </div>
                   )}

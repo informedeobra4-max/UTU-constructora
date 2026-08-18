@@ -23,7 +23,8 @@ export default function ComprasForm({ navigate }: ComprasFormProps) {
   
   const [obras, setObras] = useState<Obra[]>([]);
   const [selectedObra, setSelectedObra] = useState<number | 'general'>('general');
-  const [imageBase64, setImageBase64] = useState<string | null>(null);
+  const [imageFile, setImageFile] = useState<File | null>(null);
+  const [imagePreview, setImagePreview] = useState<string | null>(null);
 
   useEffect(() => {
     const savedObras = localStorage.getItem('obras_list');
@@ -32,11 +33,14 @@ export default function ComprasForm({ navigate }: ComprasFormProps) {
 
   const handleImageUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
     if (e.target.files && e.target.files[0]) {
+      const file = e.target.files[0];
+      setImageFile(file);
+      
       const reader = new FileReader();
       reader.onloadend = () => {
-        setImageBase64(reader.result as string);
+        setImagePreview(reader.result as string);
       };
-      reader.readAsDataURL(e.target.files[0]);
+      reader.readAsDataURL(file);
     }
   };
 
@@ -65,17 +69,28 @@ export default function ComprasForm({ navigate }: ComprasFormProps) {
       }
     ]).select();
 
-    setIsSubmitting(false);
-
     if (error) {
       console.error('Error Supabase:', error);
       alert('Error en el servidor: ' + error.message);
-    } else {
-      if (imageBase64 && data && data.length > 0) {
-        localStorage.setItem(`gasto_image_${data[0].id}`, imageBase64);
+      setIsSubmitting(false);
+      return;
+    } 
+
+    if (data && data.length > 0) {
+      const gastoId = data[0].id;
+      if (imageFile) {
+        const { error: uploadError } = await supabase.storage
+          .from('comprobantes')
+          .upload(`${gastoId}`, imageFile, { contentType: imageFile.type, upsert: true });
+          
+        if (uploadError) {
+          console.error('Error subiendo imagen:', uploadError);
+          alert('El gasto se guardó, pero hubo un error al subir la foto.');
+        }
       }
       setShowSuccess(true);
     }
+    setIsSubmitting(false);
   };
 
   const handleSuccessComplete = () => {
@@ -237,11 +252,11 @@ export default function ComprasForm({ navigate }: ComprasFormProps) {
           <label className="text-xs font-bold tracking-wider text-text-muted uppercase">Remito / Factura</label>
           <label className="w-full border-2 border-dashed border-secondary/50 rounded-xl bg-background-alt hover:bg-surface hover:border-primary transition-all cursor-pointer flex flex-col items-center justify-center py-10 px-4 text-center group">
             <input type="file" accept="image/*" capture="environment" className="hidden" onChange={handleImageUpload} />
-            <div className={`w-14 h-14 rounded-full flex items-center justify-center mb-4 transition-colors ${imageBase64 ? 'bg-primary/20 text-primary' : 'bg-surface text-text-muted group-hover:bg-primary/20 group-hover:text-primary'}`}>
+            <div className={`w-14 h-14 rounded-full flex items-center justify-center mb-4 transition-colors ${imagePreview ? 'bg-primary/20 text-primary' : 'bg-surface text-text-muted group-hover:bg-primary/20 group-hover:text-primary'}`}>
               <Camera className="w-7 h-7" />
             </div>
-            <span className="text-text-main font-medium">{imageBase64 ? '¡Foto adjuntada!' : 'Tomar foto o subir comprobante'}</span>
-            <span className="text-text-muted text-sm mt-1">{imageBase64 ? 'Haz clic para cambiar' : 'Formatos: JPG, PNG'}</span>
+            <span className="text-text-main font-medium">{imagePreview ? '¡Foto adjuntada!' : 'Tomar foto o subir comprobante'}</span>
+            <span className="text-text-muted text-sm mt-1">{imagePreview ? 'Haz clic para cambiar' : 'Formatos: JPG, PNG'}</span>
           </label>
         </div>
       </main>
