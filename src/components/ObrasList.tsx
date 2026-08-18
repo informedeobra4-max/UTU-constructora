@@ -38,9 +38,32 @@ export default function ObrasList({ navigate }: ObrasListProps) {
     ];
   });
 
+  const [deferredPrompt, setDeferredPrompt] = useState<any>(null);
+  const [showInstallBanner, setShowInstallBanner] = useState(false);
+
   useEffect(() => {
     localStorage.setItem('obras_list', JSON.stringify(obras));
   }, [obras]);
+
+  useEffect(() => {
+    const handler = (e: Event) => {
+      e.preventDefault();
+      setDeferredPrompt(e);
+      setShowInstallBanner(true);
+    };
+    window.addEventListener('beforeinstallprompt', handler);
+    return () => window.removeEventListener('beforeinstallprompt', handler);
+  }, []);
+
+  const handleInstallApp = async () => {
+    if (!deferredPrompt) return;
+    deferredPrompt.prompt();
+    const { outcome } = await deferredPrompt.userChoice;
+    if (outcome === 'accepted') {
+      setDeferredPrompt(null);
+      setShowInstallBanner(false);
+    }
+  };
 
   const [editingId, setEditingId] = useState<number | null>(null);
   const [editName, setEditName] = useState('');
@@ -92,7 +115,20 @@ export default function ObrasList({ navigate }: ObrasListProps) {
 
   return (
     <div className="min-h-screen bg-background pb-20">
-      <header className="flex items-center justify-between px-4 py-4 bg-background border-b border-surface sticky top-0 z-50">
+      {/* Install Banner */}
+      {showInstallBanner && (
+        <div className="bg-primary px-4 py-3 flex items-center justify-between sticky top-0 z-[60] shadow-md">
+          <div className="text-background font-bold text-sm">¿Quieres instalar la App?</div>
+          <button 
+            onClick={handleInstallApp}
+            className="bg-background text-primary px-4 py-1.5 rounded-full font-bold text-xs shadow-sm hover:scale-105 transition-transform"
+          >
+            INSTALAR
+          </button>
+        </div>
+      )}
+
+      <header className="flex items-center justify-between px-4 py-4 bg-background border-b border-surface sticky top-[showInstallBanner ? '52px' : '0'] z-50">
         <Logo onClick={() => navigate('splash')} />
         <div className="flex items-center space-x-4 text-text-muted">
           <button onClick={() => navigate('notifications')} className="relative hover:text-text-main transition-colors">
@@ -166,8 +202,11 @@ export default function ObrasList({ navigate }: ObrasListProps) {
                         accept="image/*"
                         onChange={(e) => {
                           if (e.target.files && e.target.files[0]) {
-                            const url = URL.createObjectURL(e.target.files[0]);
-                            setEditImage(url);
+                            const reader = new FileReader();
+                            reader.onloadend = () => {
+                              setEditImage(reader.result as string);
+                            };
+                            reader.readAsDataURL(e.target.files[0]);
                           }
                         }}
                         className="absolute inset-0 w-full h-full opacity-0 cursor-pointer"

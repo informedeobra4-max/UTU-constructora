@@ -161,6 +161,17 @@ export default function GastosView({ navigate }: GastosViewProps) {
                   </h3>
                   <p className="text-text-muted text-sm truncate">{exp.title}</p>
                   <div className="text-xs text-secondary mt-1">{exp.subtitle}</div>
+                  
+                  {localStorage.getItem(`gasto_image_${exp.id}`) && (
+                    <div className="mt-3 relative w-20 h-20 rounded-lg overflow-hidden border border-surface-hover">
+                      <img 
+                        src={localStorage.getItem(`gasto_image_${exp.id}`)!} 
+                        alt="Comprobante" 
+                        className="w-full h-full object-cover"
+                        onClick={() => window.open(localStorage.getItem(`gasto_image_${exp.id}`)!, '_blank')}
+                      />
+                    </div>
+                  )}
                 </div>
 
                 <div className="text-right flex flex-col items-end justify-center">

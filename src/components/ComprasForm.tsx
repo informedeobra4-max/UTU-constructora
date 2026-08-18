@@ -1,5 +1,5 @@
 import { ArrowLeft, Calendar, Camera, ChevronDown, Store, User, X } from 'lucide-react';
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Screen } from '../types';
 import Logo from './Logo';
 import SuccessOverlay from './SuccessOverlay';
@@ -9,37 +9,71 @@ interface ComprasFormProps {
   navigate: (screen: Screen) => void;
 }
 
+interface Obra {
+  id: number;
+  name: string;
+}
+
 export default function ComprasForm({ navigate }: ComprasFormProps) {
   const [showSuccess, setShowSuccess] = useState(false);
   const [description, setDescription] = useState('');
   const [amount, setAmount] = useState('');
+  const [provider, setProvider] = useState('');
   const [isSubmitting, setIsSubmitting] = useState(false);
+  
+  const [obras, setObras] = useState<Obra[]>([]);
+  const [selectedObra, setSelectedObra] = useState<number | 'general'>('general');
+  const [imageBase64, setImageBase64] = useState<string | null>(null);
+
+  useEffect(() => {
+    const savedObras = localStorage.getItem('obras_list');
+    if (savedObras) setObras(JSON.parse(savedObras));
+  }, []);
+
+  const handleImageUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
+    if (e.target.files && e.target.files[0]) {
+      const reader = new FileReader();
+      reader.onloadend = () => {
+        setImageBase64(reader.result as string);
+      };
+      reader.readAsDataURL(e.target.files[0]);
+    }
+  };
 
   const handleSave = async () => {
     if (!description || !amount) {
-      alert('Por favor complete la descripción y el valor.');
+      alert('Por favor complete al menos la descripción y el monto.');
       return;
     }
     
     if (isSubmitting) return;
     setIsSubmitting(true);
 
-    const { error } = await supabase.from('gastos').insert([
+    let obraName = 'General';
+    if (selectedObra !== 'general') {
+      const obra = obras.find(o => o.id.toString() === selectedObra.toString());
+      if (obra) obraName = obra.name;
+    }
+
+    const { data, error } = await supabase.from('gastos').insert([
       {
         type: 'materiales',
         title: description,
-        subtitle: `Cantidad: 1`, // Simplificado para la demo
+        subtitle: `${obraName} • ${provider || 'S/N'}`,
         amount: parseFloat(amount) || 0,
-        status: 'Pagado'
+        status: 'Pendiente'
       }
-    ]);
+    ]).select();
 
     setIsSubmitting(false);
 
     if (error) {
-      console.error('Error guardando la compra:', error);
-      alert('Error guardando la compra.');
+      console.error('Error Supabase:', error);
+      alert('Error en el servidor: ' + error.message);
     } else {
+      if (imageBase64 && data && data.length > 0) {
+        localStorage.setItem(`gasto_image_${data[0].id}`, imageBase64);
+      }
       setShowSuccess(true);
     }
   };
@@ -67,6 +101,25 @@ export default function ComprasForm({ navigate }: ComprasFormProps) {
       </header>
 
       <main className="flex-1 px-4 py-6 max-w-md mx-auto w-full pb-32 space-y-6">
+        
+        {/* Obra */}
+        <div className="space-y-1.5">
+          <label className="text-xs font-bold tracking-wider text-text-muted uppercase">Obra Destino</label>
+          <div className="relative">
+            <select 
+              value={selectedObra}
+              onChange={(e) => setSelectedObra(e.target.value === 'general' ? 'general' : Number(e.target.value))}
+              className="w-full bg-surface border border-surface-hover rounded-xl px-4 py-3.5 text-text-main appearance-none focus:outline-none focus:border-primary focus:ring-1 focus:ring-primary transition-colors cursor-pointer"
+            >
+              <option value="general">Gasto General / Depósito</option>
+              {obras.map(obra => (
+                <option key={obra.id} value={obra.id}>{obra.name}</option>
+              ))}
+            </select>
+            <ChevronDown className="absolute right-4 top-1/2 -translate-y-1/2 w-5 h-5 text-text-muted pointer-events-none" />
+          </div>
+        </div>
+
         {/* Descripción */}
         <div className="space-y-1.5">
           <label className="text-xs font-bold tracking-wider text-text-muted uppercase">Descripción del Material</label>
@@ -183,12 +236,12 @@ export default function ComprasForm({ navigate }: ComprasFormProps) {
         <div className="space-y-1.5 pt-2">
           <label className="text-xs font-bold tracking-wider text-text-muted uppercase">Remito / Factura</label>
           <label className="w-full border-2 border-dashed border-secondary/50 rounded-xl bg-background-alt hover:bg-surface hover:border-primary transition-all cursor-pointer flex flex-col items-center justify-center py-10 px-4 text-center group">
-            <input type="file" accept="image/*,application/pdf" capture="environment" className="hidden" />
-            <div className="w-14 h-14 rounded-full bg-surface flex items-center justify-center mb-4 group-hover:bg-primary/20 transition-colors">
-              <Camera className="w-7 h-7 text-text-muted group-hover:text-primary transition-colors" />
+            <input type="file" accept="image/*" capture="environment" className="hidden" onChange={handleImageUpload} />
+            <div className={`w-14 h-14 rounded-full flex items-center justify-center mb-4 transition-colors ${imageBase64 ? 'bg-primary/20 text-primary' : 'bg-surface text-text-muted group-hover:bg-primary/20 group-hover:text-primary'}`}>
+              <Camera className="w-7 h-7" />
             </div>
-            <span className="text-text-main font-medium">Tomar foto o subir comprobante</span>
-            <span className="text-text-muted text-sm mt-1">Formatos: JPG, PNG, PDF</span>
+            <span className="text-text-main font-medium">{imageBase64 ? '¡Foto adjuntada!' : 'Tomar foto o subir comprobante'}</span>
+            <span className="text-text-muted text-sm mt-1">{imageBase64 ? 'Haz clic para cambiar' : 'Formatos: JPG, PNG'}</span>
           </label>
         </div>
       </main>
