@@ -1,0 +1,6 @@
+{
+  "name": "UTU Constructora",
+  "description": "Construction Site Cost and Expense Management",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}
