@@ -1,5 +1,5 @@
 import { Bell, ArrowRight, Plus, Calendar, Trash2, Edit2, Camera } from 'lucide-react';
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Screen } from '../types';
 import Logo from './Logo';
 
@@ -8,29 +8,39 @@ interface ObrasListProps {
 }
 
 export default function ObrasList({ navigate }: ObrasListProps) {
-  const [obras, setObras] = useState([
-    {
-      id: 1,
-      name: 'A3 Portillo',
-      status: 'En Ejecución',
-      spent: '$ 1.245.000,00',
-      image: 'https://images.unsplash.com/photo-1541888086225-f674ce88ec09?auto=format&fit=crop&q=80&w=800',
-    },
-    {
-      id: 2,
-      name: 'S1 Lar de Boedo',
-      status: 'En Ejecución',
-      spent: '$ 890.500,00',
-      image: 'https://images.unsplash.com/photo-1503387762-592deb58ef4e?auto=format&fit=crop&q=80&w=800',
-    },
-    {
-      id: 3,
-      name: 'Casa 42',
-      status: 'Planificación',
-      spent: '$ 12.000,00',
-      image: 'https://images.unsplash.com/photo-1590496794008-383c8070b257?auto=format&fit=crop&q=80&w=800',
+  const [obras, setObras] = useState(() => {
+    const saved = localStorage.getItem('obras_list');
+    if (saved) {
+      return JSON.parse(saved);
     }
-  ]);
+    return [
+      {
+        id: 1,
+        name: 'A3 Portillo',
+        status: 'En Ejecución',
+        spent: '$4,250.00',
+        image: 'https://images.unsplash.com/photo-1503387762-592deb58ef4e?auto=format&fit=crop&q=80&w=2000'
+      },
+      {
+        id: 2,
+        name: 'S1 Lar de Boedo',
+        status: 'En Ejecución',
+        spent: '$8,100.00',
+        image: 'https://images.unsplash.com/photo-1541888081-308104ebce39?auto=format&fit=crop&q=80&w=2000'
+      },
+      {
+        id: 3,
+        name: 'Casa 42',
+        status: 'En Ejecución',
+        spent: '$1,950.00',
+        image: 'https://images.unsplash.com/photo-1581094288338-2314dddb7ece?auto=format&fit=crop&q=80&w=2000'
+      }
+    ];
+  });
+
+  useEffect(() => {
+    localStorage.setItem('obras_list', JSON.stringify(obras));
+  }, [obras]);
 
   const [editingId, setEditingId] = useState<number | null>(null);
   const [editName, setEditName] = useState('');

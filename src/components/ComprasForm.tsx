@@ -151,9 +151,9 @@ export default function ComprasForm({ navigate }: ComprasFormProps) {
             <User className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-text-muted" />
             <select className="w-full bg-surface border border-surface-hover rounded-xl pl-11 pr-10 py-3.5 text-text-main appearance-none focus:outline-none focus:border-primary focus:ring-1 focus:ring-primary transition-colors cursor-pointer">
               <option value="" disabled selected>Seleccionar responsable</option>
-              <option>Arq. González</option>
-              <option>Ing. Martínez</option>
-              <option>Capataz Silva</option>
+              <option>Pablo Bellido</option>
+              <option>Rodrigo Fernandez</option>
+              <option>Gaston VENIER</option>
             </select>
             <ChevronDown className="absolute right-4 top-1/2 -translate-y-1/2 w-5 h-5 text-text-muted pointer-events-none" />
           </div>
