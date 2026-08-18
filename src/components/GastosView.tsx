@@ -1,7 +1,8 @@
+import { useEffect, useState } from 'react';
 import { ArrowLeft, Briefcase, FileText, Hammer, Search } from 'lucide-react';
-import { useState } from 'react';
 import { Screen } from '../types';
 import Logo from './Logo';
+import { supabase } from '../lib/supabaseClient';
 
 interface GastosViewProps {
   navigate: (screen: Screen) => void;
@@ -9,37 +10,27 @@ interface GastosViewProps {
 
 export default function GastosView({ navigate }: GastosViewProps) {
   const [filterType, setFilterType] = useState<'todos' | 'materiales' | 'mano_obra' | 'varios'>('todos');
-  
-  const allExpenses = [
-    {
-      type: 'materiales',
-      title: 'Hierro 8mm - Acindar',
-      subtitle: '05/02/2024 • Juan Pérez',
-      amount: 450000,
-      status: 'Pagado',
-    },
-    {
-      type: 'mano_obra',
-      title: 'Quincena Albañilería',
-      subtitle: '05/02/2024 • Carlos Gómez',
-      amount: 600000,
-      status: 'Pendiente',
-    },
-    {
-      type: 'varios',
-      title: 'Flete Volquete',
-      subtitle: '03/02/2024 • Juan Pérez',
-      amount: 10000,
-      status: 'Pagado',
-    },
-    {
-      type: 'varios',
-      title: 'Comida Personal',
-      subtitle: '02/02/2024 • Admin',
-      amount: 190000,
-      status: 'Pagado',
-    },
-  ];
+  const [allExpenses, setAllExpenses] = useState<any[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
+
+  useEffect(() => {
+    fetchExpenses();
+  }, []);
+
+  const fetchExpenses = async () => {
+    setIsLoading(true);
+    const { data, error } = await supabase
+      .from('gastos')
+      .select('*')
+      .order('created_at', { ascending: false });
+      
+    if (error) {
+      console.error('Error fetching expenses:', error);
+    } else {
+      setAllExpenses(data || []);
+    }
+    setIsLoading(false);
+  };
 
   const expenses = allExpenses.filter(exp => filterType === 'todos' || exp.type === filterType);
 

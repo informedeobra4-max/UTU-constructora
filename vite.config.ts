@@ -5,6 +5,7 @@ import {defineConfig} from 'vite';
 
 export default defineConfig(() => {
   return {
+    base: '/UTU-constructora/',
     plugins: [react(), tailwindcss()],
     resolve: {
       alias: {
