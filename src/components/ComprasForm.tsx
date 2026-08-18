@@ -3,6 +3,7 @@ import { useState } from 'react';
 import { Screen } from '../types';
 import Logo from './Logo';
 import SuccessOverlay from './SuccessOverlay';
+import { supabase } from '../lib/supabaseClient';
 
 interface ComprasFormProps {
   navigate: (screen: Screen) => void;
@@ -10,9 +11,37 @@ interface ComprasFormProps {
 
 export default function ComprasForm({ navigate }: ComprasFormProps) {
   const [showSuccess, setShowSuccess] = useState(false);
+  const [description, setDescription] = useState('');
+  const [amount, setAmount] = useState('');
+  const [isSubmitting, setIsSubmitting] = useState(false);
 
-  const handleSave = () => {
-    setShowSuccess(true);
+  const handleSave = async () => {
+    if (!description || !amount) {
+      alert('Por favor complete la descripción y el valor.');
+      return;
+    }
+    
+    if (isSubmitting) return;
+    setIsSubmitting(true);
+
+    const { error } = await supabase.from('gastos').insert([
+      {
+        type: 'materiales',
+        title: description,
+        subtitle: `Cantidad: 1`, // Simplificado para la demo
+        amount: parseFloat(amount) || 0,
+        status: 'Pagado'
+      }
+    ]);
+
+    setIsSubmitting(false);
+
+    if (error) {
+      console.error('Error guardando la compra:', error);
+      alert('Error guardando la compra.');
+    } else {
+      setShowSuccess(true);
+    }
   };
 
   const handleSuccessComplete = () => {
@@ -43,6 +72,8 @@ export default function ComprasForm({ navigate }: ComprasFormProps) {
           <label className="text-xs font-bold tracking-wider text-text-muted uppercase">Descripción del Material</label>
           <input
             type="text"
+            value={description}
+            onChange={(e) => setDescription(e.target.value)}
             placeholder="Ej: Hierro del 8, 50 bolsas de cemento..."
             className="w-full bg-surface border border-surface-hover rounded-xl px-4 py-3.5 text-text-main placeholder-text-muted/50 focus:outline-none focus:border-primary focus:ring-1 focus:ring-primary transition-colors"
           />
@@ -80,6 +111,8 @@ export default function ComprasForm({ navigate }: ComprasFormProps) {
             <span className="absolute left-4 top-1/2 -translate-y-1/2 text-text-muted">$</span>
             <input
               type="number"
+              value={amount}
+              onChange={(e) => setAmount(e.target.value)}
               placeholder="0.00"
               className="w-full bg-surface border border-surface-hover rounded-xl pl-8 pr-4 py-3.5 text-text-main placeholder-text-muted/50 focus:outline-none focus:border-primary focus:ring-1 focus:ring-primary transition-colors"
             />

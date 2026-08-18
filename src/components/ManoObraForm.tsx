@@ -3,6 +3,7 @@ import { useState } from 'react';
 import { Screen } from '../types';
 import Logo from './Logo';
 import SuccessOverlay from './SuccessOverlay';
+import { supabase } from '../lib/supabaseClient';
 
 interface ManoObraFormProps {
   navigate: (screen: Screen) => void;
@@ -10,9 +11,38 @@ interface ManoObraFormProps {
 
 export default function ManoObraForm({ navigate }: ManoObraFormProps) {
   const [showSuccess, setShowSuccess] = useState(false);
+  const [workerName, setWorkerName] = useState('');
+  const [period, setPeriod] = useState('');
+  const [amount, setAmount] = useState('');
+  const [isSubmitting, setIsSubmitting] = useState(false);
 
-  const handleSave = () => {
-    setShowSuccess(true);
+  const handleSave = async () => {
+    if (!workerName || !amount) {
+      alert('Por favor complete el contratista y el monto total.');
+      return;
+    }
+    
+    if (isSubmitting) return;
+    setIsSubmitting(true);
+
+    const { error } = await supabase.from('gastos').insert([
+      {
+        type: 'mano_obra',
+        title: workerName,
+        subtitle: `Tarea: ${period || 'General'}`,
+        amount: parseFloat(amount) || 0,
+        status: 'Pendiente'
+      }
+    ]);
+
+    setIsSubmitting(false);
+
+    if (error) {
+      console.error('Error guardando la mano de obra:', error);
+      alert('Error guardando el certificado.');
+    } else {
+      setShowSuccess(true);
+    }
   };
 
   const handleSuccessComplete = () => {
@@ -61,6 +91,8 @@ export default function ManoObraForm({ navigate }: ManoObraFormProps) {
           <label className="text-xs font-bold tracking-wider text-text-muted uppercase">Tarea a Realizar</label>
           <input
             type="text"
+            value={period}
+            onChange={(e) => setPeriod(e.target.value)}
             placeholder="Ej. Llenado de losa sobre PB"
             className="w-full bg-surface border border-surface-hover rounded-xl px-4 py-3.5 text-text-main placeholder-text-muted/50 focus:outline-none focus:border-primary focus:ring-1 focus:ring-primary transition-colors"
           />
@@ -71,6 +103,8 @@ export default function ManoObraForm({ navigate }: ManoObraFormProps) {
           <label className="text-xs font-bold tracking-wider text-text-muted uppercase">Responsable / Contratista</label>
           <input
             type="text"
+            value={workerName}
+            onChange={(e) => setWorkerName(e.target.value)}
             placeholder="Nombre del contratista o cuadrilla"
             className="w-full bg-surface border border-surface-hover rounded-xl px-4 py-3.5 text-text-main placeholder-text-muted/50 focus:outline-none focus:border-primary focus:ring-1 focus:ring-primary transition-colors"
           />
@@ -85,6 +119,8 @@ export default function ManoObraForm({ navigate }: ManoObraFormProps) {
             <span className="absolute left-4 top-1/2 -translate-y-1/2 text-text-muted">$</span>
             <input
               type="number"
+              value={amount}
+              onChange={(e) => setAmount(e.target.value)}
               placeholder="0.00"
               className="w-full bg-surface border border-surface-hover rounded-xl pl-8 pr-4 py-3.5 text-text-main placeholder-text-muted/50 focus:outline-none focus:border-primary focus:ring-1 focus:ring-primary transition-colors"
             />
