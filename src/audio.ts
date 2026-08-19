@@ -77,3 +77,26 @@ export const playSuccessSound = () => {
   playTone(ctx, 659.25, 'sine', now + 0.1, 0.1, 0.1); // Mi
   playTone(ctx, 783.99, 'sine', now + 0.2, 0.4, 0.15);// Sol prolongado
 };
+
+export const playTickSound = () => {
+  const ctx = initAudio();
+  if (!ctx) return;
+  const now = ctx.currentTime;
+  
+  // Ruido de ruleta / clic mecánico
+  const osc = ctx.createOscillator();
+  const gain = ctx.createGain();
+  
+  osc.type = 'square';
+  osc.frequency.setValueAtTime(400, now); 
+  osc.frequency.exponentialRampToValueAtTime(50, now + 0.02); 
+  
+  gain.gain.setValueAtTime(0.3, now);
+  gain.gain.exponentialRampToValueAtTime(0.01, now + 0.02);
+  
+  osc.connect(gain);
+  gain.connect(ctx.destination);
+  
+  osc.start(now);
+  osc.stop(now + 0.03);
+};

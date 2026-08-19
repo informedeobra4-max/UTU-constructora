@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react';
-import { ArrowLeft, Briefcase, FileText, Hammer, Search } from 'lucide-react';
+import { ArrowLeft, Briefcase, FileText, Hammer, Search, Trash2 } from 'lucide-react';
 import { Screen } from '../types';
 import Logo from './Logo';
 import { supabase } from '../lib/supabaseClient';
@@ -40,6 +40,21 @@ export default function GastosView({ navigate, activeObraId }: GastosViewProps) 
       setAllExpenses(data || []);
     }
     setIsLoading(false);
+  };
+
+  const handleDelete = async (id: string) => {
+    if (!window.confirm('¿Seguro que deseas eliminar este registro?')) return;
+    
+    // Update UI optimistically
+    setAllExpenses(prev => prev.filter(exp => exp.id !== id));
+    
+    // Delete from database
+    const { error } = await supabase.from('gastos').delete().eq('id', id);
+    if (error) {
+      console.error('Error deleting expense:', error);
+      alert('Hubo un error al eliminar el registro. Se recargarán los datos.');
+      fetchExpenses(); // Re-fetch to restore correct state
+    }
   };
 
   const expenses = allExpenses.filter(exp => {
@@ -189,9 +204,18 @@ export default function GastosView({ navigate, activeObraId }: GastosViewProps) 
                   )}
                 </div>
 
-                <div className="text-right flex flex-col items-end justify-center">
-                  <span className="text-text-main font-bold text-lg">{formatCurrency(exp.amount)}</span>
-                  <span className={`text-[10px] uppercase font-bold tracking-wider px-2 py-1 rounded mt-1.5 ${
+                <div className="text-right flex flex-col items-end justify-center gap-2">
+                  <div className="flex items-center gap-2">
+                    <span className="text-text-main font-bold text-lg">{formatCurrency(exp.amount)}</span>
+                    <button 
+                      onClick={() => handleDelete(exp.id)}
+                      className="p-1.5 text-text-muted hover:text-red-500 hover:bg-red-500/10 rounded-lg transition-colors"
+                      title="Eliminar registro"
+                    >
+                      <Trash2 className="w-4 h-4" />
+                    </button>
+                  </div>
+                  <span className={`text-[10px] uppercase font-bold tracking-wider px-2 py-1 rounded ${
                     exp.status === 'Pagado' 
                       ? 'bg-surface-hover text-text-muted'
                       : 'bg-primary/20 text-primary border border-primary/30'

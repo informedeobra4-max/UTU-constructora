@@ -1,7 +1,8 @@
-import { ArrowLeft, Camera, CheckCircle2 } from 'lucide-react';
+import { ArrowLeft, Camera } from 'lucide-react';
 import { useState, useEffect } from 'react';
 import { Screen } from '../types';
 import Logo from './Logo';
+import SuccessOverlay from './SuccessOverlay';
 import { supabase } from '../lib/supabaseClient';
 
 interface VariosFormProps {
@@ -100,6 +101,10 @@ export default function VariosForm({ navigate, activeObraId }: VariosFormProps) 
 
   return (
     <div className="min-h-screen bg-background pb-20 relative">
+      <SuccessOverlay 
+        isVisible={showSuccess} 
+        onComplete={handleSuccessComplete} 
+      />
       {/* Top App Bar */}
       <header className="flex items-center px-4 py-4 bg-background border-b border-surface sticky top-0 z-50">
         <button onClick={() => navigate('dashboard')} className="p-2 text-text-muted hover:text-text-main rounded-full hover:bg-surface transition-colors mr-3">
@@ -200,25 +205,7 @@ export default function VariosForm({ navigate, activeObraId }: VariosFormProps) 
         </button>
       </div>
 
-      {/* Success Overlay */}
-      {showSuccess && (
-        <div className="fixed inset-0 z-[100] flex items-center justify-center bg-background/95 backdrop-blur-sm animate-in fade-in duration-300">
-          <div className="text-center space-y-4 px-6 animate-in zoom-in-50 duration-500 delay-150">
-            <div className="w-24 h-24 bg-green-500/20 rounded-full flex items-center justify-center mx-auto mb-6 relative">
-              <div className="absolute inset-0 bg-green-500/20 rounded-full animate-ping"></div>
-              <CheckCircle2 className="w-12 h-12 text-green-500 relative z-10" />
-            </div>
-            <h3 className="text-3xl font-black text-text-main tracking-tight">¡Gasto Guardado!</h3>
-            <p className="text-text-muted font-medium text-lg">El registro se almacenó con éxito en Supabase.</p>
-            <button 
-              onClick={handleSuccessComplete}
-              className="mt-8 bg-surface border border-surface-hover hover:border-primary text-text-main px-8 py-3 rounded-xl font-bold uppercase tracking-wider transition-all"
-            >
-              CERRAR
-            </button>
-          </div>
-        </div>
-      )}
+
     </div>
   );
 }

@@ -1,8 +1,9 @@
-import { Bell, ArrowRight, Plus, Calendar, Trash2, Edit2, Camera } from 'lucide-react';
+import { Bell, ArrowRight, Plus, Calendar, Trash2, Edit2, Camera, Download } from 'lucide-react';
 import { useState, useEffect } from 'react';
 import { Screen } from '../types';
 import Logo from './Logo';
 import { supabase } from '../lib/supabaseClient';
+import HorizontalCalendar from './HorizontalCalendar';
 
 interface ObrasListProps {
   navigate: (screen: Screen) => void;
@@ -10,23 +11,56 @@ interface ObrasListProps {
 }
 
 export default function ObrasList({ navigate, setActiveObraId }: ObrasListProps) {
-  const [obras, setObras] = useState<any[]>(() => {
-    const saved = localStorage.getItem('obras_list');
-    if (saved) return JSON.parse(saved);
-    return [
-      { id: 1, name: 'A3 Portillo', status: 'En Ejecución', image: 'https://images.unsplash.com/photo-1503387762-592deb58ef4e?auto=format&fit=crop&q=80&w=2000' },
-      { id: 2, name: 'S1 Lar de Boedo', status: 'En Ejecución', image: 'https://images.unsplash.com/photo-1541888081-308104ebce39?auto=format&fit=crop&q=80&w=2000' },
-      { id: 3, name: 'Casa 42', status: 'En Ejecución', image: 'https://images.unsplash.com/photo-1581094288338-2314dddb7ece?auto=format&fit=crop&q=80&w=2000' }
-    ];
-  });
+  const [obras, setObras] = useState<any[]>([]);
+
+  const fetchObras = async () => {
+    const { data, error } = await supabase.from('obras').select('*').order('created_at', { ascending: true });
+    if (data && !error) {
+      if (data.length === 0) {
+        // Migration: Si Supabase está vacío, intenta subir las obras locales
+        const saved = localStorage.getItem('obras_list');
+        if (saved) {
+          try {
+            const localObras = JSON.parse(saved);
+            if (localObras.length > 0) {
+              const obrasToInsert = localObras.map((o: any) => ({
+                 name: o.name,
+                 status: o.status,
+                 image: o.image
+              }));
+              const { data: insertedData, error: insertError } = await supabase.from('obras').insert(obrasToInsert).select();
+              if (insertedData && !insertError) {
+                 setObras(insertedData);
+                 localStorage.setItem('obras_list', JSON.stringify(insertedData));
+                 return;
+              }
+            }
+          } catch(e) {
+            console.error('Error migrating obras:', e);
+          }
+        }
+      }
+      
+      setObras(data);
+      localStorage.setItem('obras_list', JSON.stringify(data));
+    }
+  };
+
+  useEffect(() => {
+    fetchObras();
+    
+    const interval = setInterval(() => {
+      fetchObras();
+    }, 15000);
+    
+    return () => clearInterval(interval);
+  }, []);
 
   const [gastosTotales, setGastosTotales] = useState<Record<number, number>>({});
   const [deferredPrompt, setDeferredPrompt] = useState<any>(null);
   const [showInstallBanner, setShowInstallBanner] = useState(false);
 
-  useEffect(() => {
-    localStorage.setItem('obras_list', JSON.stringify(obras));
-  }, [obras]);
+
 
   useEffect(() => {
     const handler = (e: Event) => {
@@ -74,48 +108,87 @@ export default function ObrasList({ navigate, setActiveObraId }: ObrasListProps)
   const [editingId, setEditingId] = useState<number | null>(null);
   const [editName, setEditName] = useState('');
   const [editImage, setEditImage] = useState('');
+  const [editImageFile, setEditImageFile] = useState<File | null>(null);
+  const [isSaving, setIsSaving] = useState(false);
 
-  const days = [
-    { name: 'L', date: '21', active: false },
-    { name: 'M', date: '22', active: false },
-    { name: 'M', date: '23', active: true },
-    { name: 'J', date: '24', active: false },
-    { name: 'V', date: '25', active: false },
-    { name: 'S', date: '26', active: false },
-    { name: 'D', date: '27', active: false },
-  ];
+
 
   const handleEditClick = (obra: any, e: React.MouseEvent) => {
     e.stopPropagation();
     setEditingId(obra.id);
     setEditName(obra.name);
     setEditImage(obra.image);
+    setEditImageFile(null);
   };
 
-  const handleSaveEdit = (id: number, e: React.MouseEvent) => {
+  const handleSaveEdit = async (id: number, e: React.MouseEvent) => {
     e.stopPropagation();
+    if (isSaving) return;
+    setIsSaving(true);
+    
+    // Optimizacion visual rapida
     setObras(obras.map(o => o.id === id ? { ...o, name: editName, image: editImage } : o));
+    
+    if (id > 0) {
+      let finalImageUrl = editImage;
+      
+      // Upload image if a new one was selected
+      if (editImageFile) {
+        const fileName = `obra_${id}_${Date.now()}`;
+        const { data: uploadData, error: uploadError } = await supabase.storage
+          .from('comprobantes')
+          .upload(fileName, editImageFile, { contentType: editImageFile.type, upsert: true });
+          
+        if (uploadData && !uploadError) {
+          finalImageUrl = supabase.storage.from('comprobantes').getPublicUrl(fileName).data.publicUrl;
+        }
+      }
+
+      const { error } = await supabase.from('obras').update({ name: editName, image: finalImageUrl }).eq('id', id);
+      if (error) {
+        alert('Error guardando la obra: ' + error.message);
+      }
+      await fetchObras();
+    }
+    
     setEditingId(null);
+    setEditImageFile(null);
+    setIsSaving(false);
   };
 
-  const handleDelete = (id: number, e: React.MouseEvent) => {
+  const handleDelete = async (id: number, e: React.MouseEvent) => {
     e.stopPropagation();
     if(confirm('¿Seguro que deseas eliminar esta obra?')) {
       setObras(obras.filter(o => o.id !== id));
+      if (id > 0) {
+        await supabase.from('obras').delete().eq('id', id);
+        fetchObras();
+      }
     }
   };
 
-  const handleAddObra = () => {
+  const handleAddObra = async () => {
+    if (isSaving) return;
+    setIsSaving(true);
     const newObra = {
-      id: Date.now(),
       name: 'Nueva Obra',
       status: 'Planificación',
       image: 'https://images.unsplash.com/photo-1503387762-592deb58ef4e?auto=format&fit=crop&q=80&w=800',
     };
-    setObras([...obras, newObra]);
-    setEditingId(newObra.id);
-    setEditName(newObra.name);
-    setEditImage(newObra.image);
+    
+    // Optimistic insert
+    const tempId = -Date.now();
+    setObras([...obras, { ...newObra, id: tempId }]);
+    
+    const { data } = await supabase.from('obras').insert([newObra]).select();
+    if (data && data[0]) {
+      await fetchObras(); // Refresh to get real IDs
+      setEditingId(data[0].id);
+      setEditName(data[0].name);
+      setEditImage(data[0].image);
+      setEditImageFile(null);
+    }
+    setIsSaving(false);
   };
 
   const formatCurrency = (amount: number) => {
@@ -149,6 +222,19 @@ export default function ObrasList({ navigate, setActiveObraId }: ObrasListProps)
         <Logo onClick={() => navigate('splash')} />
         <div className="flex items-center space-x-4 text-text-muted">
           <button 
+            onClick={() => {
+              if (deferredPrompt) {
+                handleInstallApp();
+              } else {
+                alert("Para instalar la App: Toca los 3 puntitos (menú) arriba a la derecha y elige 'Instalar aplicación' o 'Agregar a la pantalla principal'.");
+              }
+            }} 
+            className="p-1.5 bg-primary/20 text-primary hover:bg-primary/30 rounded-full transition-colors"
+            title="Descargar App"
+          >
+            <Download className="w-5 h-5" />
+          </button>
+          <button 
             onClick={() => { setActiveObraId('general'); navigate('calendar'); }} 
             className="relative hover:text-text-main transition-colors"
           >
@@ -170,26 +256,18 @@ export default function ObrasList({ navigate, setActiveObraId }: ObrasListProps)
           <p className="text-sm text-text-muted">Gestión de Obras</p>
         </div>
 
-        {/* Date & Period Filter Bar instead of title */}
-        <div className="flex items-center space-x-4 bg-surface rounded-2xl p-2 border border-surface-hover">
-          <button className="p-3 bg-surface-hover rounded-xl text-text-muted hover:text-primary transition-colors">
-            <Calendar className="w-5 h-5" />
-          </button>
-          <div className="flex flex-1 justify-between items-center overflow-x-auto hide-scrollbar px-2">
-            {days.map((day, idx) => (
-              <div
-                key={idx}
-                className={`flex flex-col items-center justify-center min-w-[36px] ${
-                  day.active ? 'text-primary' : 'text-text-muted opacity-60'
-                }`}
-              >
-                <span className="text-xs font-medium">{day.name}</span>
-                <span className={`text-sm ${day.active ? 'font-bold border-b-2 border-primary pb-1' : ''}`}>
-                  {day.date}
-                </span>
-              </div>
-            ))}
-          </div>
+        {/* Date & Period Filter Bar */}
+        <div className="relative mt-2">
+          <HorizontalCalendar 
+            activeObraId="general" 
+            onDateSelect={() => { setActiveObraId('general'); navigate('calendar'); }} 
+          />
+          {/* Overlay to trigger calendar navigation */}
+          <div 
+            className="absolute top-2 left-2 w-12 h-12 rounded-xl cursor-pointer z-10" 
+            onClick={() => { setActiveObraId('general'); navigate('calendar'); }}
+            title="Ir al calendario completo"
+          ></div>
         </div>
 
         <div className="space-y-4 mt-8">
@@ -226,11 +304,13 @@ export default function ObrasList({ navigate, setActiveObraId }: ObrasListProps)
                         accept="image/*"
                         onChange={(e) => {
                           if (e.target.files && e.target.files[0]) {
+                            const file = e.target.files[0];
+                            setEditImageFile(file);
                             const reader = new FileReader();
                             reader.onloadend = () => {
                               setEditImage(reader.result as string);
                             };
-                            reader.readAsDataURL(e.target.files[0]);
+                            reader.readAsDataURL(file);
                           }
                         }}
                         className="absolute inset-0 w-full h-full opacity-0 cursor-pointer"
@@ -242,7 +322,13 @@ export default function ObrasList({ navigate, setActiveObraId }: ObrasListProps)
                       </div>
                     </div>
                     <div className="flex justify-end gap-2">
-                      <button onClick={(e) => handleSaveEdit(obra.id, e)} className="px-4 py-2 bg-primary text-background font-bold rounded-lg text-sm">Guardar</button>
+                      <button 
+                        onClick={(e) => handleSaveEdit(obra.id, e)} 
+                        disabled={isSaving}
+                        className="px-4 py-2 bg-primary text-background font-bold rounded-lg text-sm disabled:opacity-50"
+                      >
+                        {isSaving ? 'Guardando...' : 'Guardar'}
+                      </button>
                     </div>
                   </div>
                 ) : (

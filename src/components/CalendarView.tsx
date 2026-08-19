@@ -1,20 +1,17 @@
 import { ArrowLeft, Bell, Calendar as CalendarIcon, Clock, Plus, Trash2 } from 'lucide-react';
-import { useState } from 'react';
+import { useState, useMemo } from 'react';
 import { playAlarmSound } from '../audio';
 import { Screen } from '../types';
 import Logo from './Logo';
+import { useNotes, Note } from '../hooks/useNotes';
+import HorizontalCalendar from './HorizontalCalendar';
 
 interface CalendarViewProps {
   navigate: (screen: Screen) => void;
   activeObraId: number | 'general';
 }
 
-interface Note {
-  id: number;
-  text: string;
-  time: string;
-  obraId?: string;
-}
+
 
 export const OBRAS_COLORS: Record<string, { name: string, color: string, textColor: string }> = {
   '1': { name: 'A3 Portillo', color: 'bg-blue-500/20', textColor: 'text-blue-400' },
@@ -24,65 +21,47 @@ export const OBRAS_COLORS: Record<string, { name: string, color: string, textCol
 };
 
 export default function CalendarView({ navigate, activeObraId }: CalendarViewProps) {
-  const [selectedDay, setSelectedDay] = useState(23);
+  const { notes, addNote, deleteNote } = useNotes();
+  const [selectedDate, setSelectedDate] = useState(() => new Date().toISOString().split('T')[0]);
+  
   const [showNewNote, setShowNewNote] = useState(false);
   const [newNoteText, setNewNoteText] = useState('');
   const [newNoteTime, setNewNoteTime] = useState('08:00');
+  const [newNoteDate, setNewNoteDate] = useState(selectedDate);
   const [newNoteObra, setNewNoteObra] = useState<string>(activeObraId.toString());
   
-  // Notas de prueba con Obras asignadas
-  const [notes, setNotes] = useState<Record<number, Note[]>>({
-    23: [
-      { id: 1, text: 'Reunión con el arquitecto para revisión de planos', time: '10:30', obraId: '3' },
-      { id: 2, text: 'Llegan los materiales de Acindar', time: '14:00', obraId: '1' }
-    ],
-    25: [
-      { id: 3, text: 'Pago quincena albañiles', time: '18:00', obraId: '2' }
-    ]
-  });
-
-  const days = [
-    { name: 'L', date: 21 },
-    { name: 'M', date: 22 },
-    { name: 'M', date: 23 },
-    { name: 'J', date: 24 },
-    { name: 'V', date: 25 },
-    { name: 'S', date: 26 },
-    { name: 'D', date: 27 },
-  ];
-
   const handleAddNote = () => {
     if (!newNoteText.trim()) return;
 
-    const newNote: Note = {
+    addNote({
       id: Date.now(),
       text: newNoteText,
       time: newNoteTime,
+      date: newNoteDate,
       obraId: newNoteObra
-    };
-
-    setNotes(prev => ({
-      ...prev,
-      [selectedDay]: [...(prev[selectedDay] || []), newNote].sort((a, b) => a.time.localeCompare(b.time))
-    }));
+    });
 
     setNewNoteText('');
     setNewNoteTime('08:00');
     setNewNoteObra('general');
     setShowNewNote(false);
     
+    // Auto-select the day so the user sees the newly added note
+    setSelectedDate(newNoteDate);
+    
     // Test the alarm sound
     playAlarmSound();
   };
 
   const handleDeleteNote = (id: number) => {
-    setNotes(prev => ({
-      ...prev,
-      [selectedDay]: prev[selectedDay].filter(n => n.id !== id)
-    }));
+    deleteNote(id);
   };
 
-  const currentNotes = notes[selectedDay] || [];
+  const currentNotes = useMemo(() => {
+    return notes
+      .filter(n => n.date === selectedDate)
+      .sort((a, b) => a.time.localeCompare(b.time));
+  }, [notes, selectedDate]);
 
   return (
     <div className="min-h-screen bg-background flex flex-col">
@@ -102,42 +81,18 @@ export default function CalendarView({ navigate, activeObraId }: CalendarViewPro
       <main className="flex-1 px-4 py-6 max-w-md mx-auto w-full pb-32 space-y-6">
         
         {/* Date Selector */}
-        <div className="bg-surface rounded-2xl p-4 border border-surface-hover">
-          <div className="flex items-center justify-between mb-4">
-            <h2 className="text-text-main font-bold capitalize">
-              {new Date(2026, 7, selectedDay).toLocaleDateString('es-AR', { month: 'long', year: 'numeric' })}
-            </h2>
-            <CalendarIcon className="w-5 h-5 text-primary" />
-          </div>
-          
-          <div className="flex justify-between items-center">
-            {days.map((day, idx) => (
-              <button
-                key={idx}
-                onClick={() => setSelectedDay(day.date)}
-                className={`flex flex-col items-center justify-center w-10 h-12 rounded-xl transition-colors ${
-                  selectedDay === day.date
-                    ? 'bg-primary text-background'
-                    : 'text-text-muted hover:bg-surface-hover'
-                }`}
-              >
-                <span className="text-[10px] font-bold uppercase">{day.name}</span>
-                <span className={`text-sm font-black ${selectedDay === day.date ? '' : (notes[day.date] ? 'text-primary' : '')}`}>
-                  {day.date}
-                </span>
-                {notes[day.date] && notes[day.date].length > 0 && selectedDay !== day.date && (
-                  <div className="w-1 h-1 bg-primary rounded-full mt-0.5"></div>
-                )}
-              </button>
-            ))}
-          </div>
-        </div>
+        <HorizontalCalendar 
+          selectedDate={selectedDate} 
+          onDateSelect={setSelectedDate} 
+          activeObraId="general" 
+          showTitle={true}
+        />
 
         {/* Notes List */}
         <div className="space-y-4">
           <div className="flex items-center justify-between">
             <h3 className="text-text-main font-bold">
-              Eventos para el {selectedDay} de Agosto
+              Eventos Programados
             </h3>
             <span className="text-xs bg-surface-hover text-text-muted px-2 py-1 rounded-md font-bold">
               {currentNotes.length} Notas
@@ -226,14 +181,25 @@ export default function CalendarView({ navigate, activeObraId }: CalendarViewPro
                   </div>
                 </div>
               )}
-              <div>
-                <label className="text-xs font-bold tracking-wider text-text-muted uppercase mb-1.5 block">Hora de Aviso</label>
-                <input 
-                  type="time" 
-                  value={newNoteTime}
-                  onChange={(e) => setNewNoteTime(e.target.value)}
-                  className="w-full bg-background-alt border border-surface-hover rounded-xl px-4 py-3 text-text-main focus:outline-none focus:border-primary"
-                />
+              <div className="flex gap-3">
+                <div className="flex-1">
+                  <label className="text-xs font-bold tracking-wider text-text-muted uppercase mb-1.5 block">Día y Mes</label>
+                  <input 
+                    type="date" 
+                    value={newNoteDate}
+                    onChange={(e) => setNewNoteDate(e.target.value)}
+                    className="w-full bg-background-alt border border-surface-hover rounded-xl px-4 py-3 text-text-main focus:outline-none focus:border-primary"
+                  />
+                </div>
+                <div className="flex-1">
+                  <label className="text-xs font-bold tracking-wider text-text-muted uppercase mb-1.5 block">Hora</label>
+                  <input 
+                    type="time" 
+                    value={newNoteTime}
+                    onChange={(e) => setNewNoteTime(e.target.value)}
+                    className="w-full bg-background-alt border border-surface-hover rounded-xl px-4 py-3 text-text-main focus:outline-none focus:border-primary"
+                  />
+                </div>
               </div>
               <div>
                 <label className="text-xs font-bold tracking-wider text-text-muted uppercase mb-1.5 block">Descripción</label>
