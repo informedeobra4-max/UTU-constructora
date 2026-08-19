@@ -6,11 +6,12 @@ const supabaseAnonKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYm
 const supabase = createClient(supabaseUrl, supabaseAnonKey);
 
 async function check() {
-  const { data: obras, error: obrasError } = await supabase.from('obras').select('*').limit(1);
-  console.log('Obras table check:', { obras, obrasError });
-
-  const { data: notif, error: notifError } = await supabase.from('notificaciones').select('*').limit(1);
-  console.log('Notificaciones table check:', { notif, notifError });
+  const { data: obrasInsert, error: obrasError } = await supabase.from('obras').insert([{ name: 'Test', status: 'Test' }]).select();
+  console.log('Obras insert check:', { obrasInsert, obrasError });
+  
+  if (obrasInsert) {
+    await supabase.from('obras').delete().eq('id', obrasInsert[0].id);
+  }
 }
 
 check();
