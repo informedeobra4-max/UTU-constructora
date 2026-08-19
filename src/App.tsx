@@ -10,6 +10,7 @@ import Dashboard from './components/Dashboard';
 import GastosView from './components/GastosView';
 import Login from './components/Login';
 import ManoObraForm from './components/ManoObraForm';
+import VariosForm from './components/VariosForm';
 import Notifications from './components/Notifications';
 import ObrasList from './components/ObrasList';
 import SplashScreen from './components/SplashScreen';
@@ -17,6 +18,7 @@ import { Screen } from './types';
 
 export default function App() {
   const [currentScreen, setCurrentScreen] = useState<Screen>('splash');
+  const [activeObraId, setActiveObraId] = useState<number | 'general'>('general');
 
   const navigate = (screen: Screen) => {
     setCurrentScreen(screen);
@@ -27,13 +29,14 @@ export default function App() {
     <div className="font-sans antialiased text-text-main bg-background min-h-screen relative pb-6">
       {currentScreen === 'splash' && <SplashScreen navigate={navigate} />}
       {currentScreen === 'login' && <Login navigate={navigate} />}
-      {currentScreen === 'obras_list' && <ObrasList navigate={navigate} />}
-      {currentScreen === 'dashboard' && <Dashboard navigate={navigate} />}
-      {currentScreen === 'calendar' && <CalendarView navigate={navigate} />}
+      {currentScreen === 'obras_list' && <ObrasList navigate={navigate} setActiveObraId={setActiveObraId} />}
+      {currentScreen === 'dashboard' && <Dashboard navigate={navigate} activeObraId={activeObraId} />}
+      {currentScreen === 'calendar' && <CalendarView navigate={navigate} activeObraId={activeObraId} />}
       {currentScreen === 'notifications' && <Notifications navigate={navigate} />}
-      {currentScreen === 'compras' && <ComprasForm navigate={navigate} />}
-      {currentScreen === 'mano_obra' && <ManoObraForm navigate={navigate} />}
-      {currentScreen === 'gastos' && <GastosView navigate={navigate} />}
+      {currentScreen === 'compras' && <ComprasForm navigate={navigate} activeObraId={activeObraId} />}
+      {currentScreen === 'mano_obra' && <ManoObraForm navigate={navigate} activeObraId={activeObraId} />}
+      {currentScreen === 'varios' && <VariosForm navigate={navigate} activeObraId={activeObraId} />}
+      {currentScreen === 'gastos' && <GastosView navigate={navigate} activeObraId={activeObraId} />}
       
       {currentScreen !== 'splash' && (
         <div className="fixed bottom-0 left-0 w-full py-1.5 bg-background border-t border-surface z-[100] text-center no-print flex items-center justify-center">

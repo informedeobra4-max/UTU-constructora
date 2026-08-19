@@ -7,17 +7,25 @@ import logoUrl from '../assets/logo.jpeg';
 
 interface GastosViewProps {
   navigate: (screen: Screen) => void;
+  activeObraId: number | 'general';
 }
 
-export default function GastosView({ navigate }: GastosViewProps) {
+export default function GastosView({ navigate, activeObraId }: GastosViewProps) {
   const [filterType, setFilterType] = useState<'todos' | 'materiales' | 'mano_obra' | 'varios'>('todos');
   const [allExpenses, setAllExpenses] = useState<any[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [failedImages, setFailedImages] = useState<Record<string, boolean>>({});
+  const [activeObraName, setActiveObraName] = useState<string>('General');
 
   useEffect(() => {
+    const savedObras = localStorage.getItem('obras_list');
+    if (savedObras && activeObraId !== 'general') {
+      const obras = JSON.parse(savedObras);
+      const obra = obras.find((o: any) => o.id === activeObraId);
+      if (obra) setActiveObraName(obra.name);
+    }
     fetchExpenses();
-  }, []);
+  }, [activeObraId]);
 
   const fetchExpenses = async () => {
     setIsLoading(true);
@@ -34,7 +42,12 @@ export default function GastosView({ navigate }: GastosViewProps) {
     setIsLoading(false);
   };
 
-  const expenses = allExpenses.filter(exp => filterType === 'todos' || exp.type === filterType);
+  const expenses = allExpenses.filter(exp => {
+    const matchesFilter = filterType === 'todos' || exp.type === filterType;
+    const expObraName = exp.subtitle?.split(' • ')[0];
+    const matchesObra = activeObraId === 'general' ? true : expObraName === activeObraName;
+    return matchesFilter && matchesObra;
+  });
 
   const formatCurrency = (val: number) => {
     return new Intl.NumberFormat('es-AR', { style: 'currency', currency: 'ARS' }).format(val);

@@ -7,6 +7,7 @@ import { supabase } from '../lib/supabaseClient';
 
 interface ManoObraFormProps {
   navigate: (screen: Screen) => void;
+  activeObraId: number | 'general';
 }
 
 interface Obra {
@@ -14,7 +15,7 @@ interface Obra {
   name: string;
 }
 
-export default function ManoObraForm({ navigate }: ManoObraFormProps) {
+export default function ManoObraForm({ navigate, activeObraId }: ManoObraFormProps) {
   const [showSuccess, setShowSuccess] = useState(false);
   const [workerName, setWorkerName] = useState('');
   const [period, setPeriod] = useState('');
@@ -22,7 +23,7 @@ export default function ManoObraForm({ navigate }: ManoObraFormProps) {
   const [isSubmitting, setIsSubmitting] = useState(false);
 
   const [obras, setObras] = useState<Obra[]>([]);
-  const [selectedObra, setSelectedObra] = useState<number | 'general'>('general');
+  const [selectedObra, setSelectedObra] = useState<number | 'general'>(activeObraId);
   const [imageFile, setImageFile] = useState<File | null>(null);
   const [imagePreview, setImagePreview] = useState<string | null>(null);
 
@@ -120,22 +121,31 @@ export default function ManoObraForm({ navigate }: ManoObraFormProps) {
       <main className="flex-1 px-4 py-6 max-w-md mx-auto w-full pb-32 space-y-6">
         
         {/* Obra */}
-        <div className="space-y-1.5">
-          <label className="text-xs font-bold tracking-wider text-text-muted uppercase">Obra Destino</label>
-          <div className="relative">
-            <select 
-              value={selectedObra}
-              onChange={(e) => setSelectedObra(e.target.value === 'general' ? 'general' : Number(e.target.value))}
-              className="w-full bg-surface border border-surface-hover rounded-xl px-4 py-3.5 text-text-main appearance-none focus:outline-none focus:border-primary focus:ring-1 focus:ring-primary transition-colors cursor-pointer"
-            >
-              <option value="general">Gasto General / Depósito</option>
-              {obras.map(obra => (
-                <option key={obra.id} value={obra.id}>{obra.name}</option>
-              ))}
-            </select>
-            <ChevronDown className="absolute right-4 top-1/2 -translate-y-1/2 w-5 h-5 text-text-muted pointer-events-none" />
+        {activeObraId === 'general' ? (
+          <div className="space-y-1.5">
+            <label className="text-xs font-bold tracking-wider text-text-muted uppercase">Obra Destino</label>
+            <div className="relative">
+              <select 
+                value={selectedObra}
+                onChange={(e) => setSelectedObra(e.target.value === 'general' ? 'general' : Number(e.target.value))}
+                className="w-full bg-surface border border-surface-hover rounded-xl px-4 py-3.5 text-text-main appearance-none focus:outline-none focus:border-primary focus:ring-1 focus:ring-primary transition-colors cursor-pointer"
+              >
+                <option value="general">Gasto General / Depósito</option>
+                {obras.map(obra => (
+                  <option key={obra.id} value={obra.id}>{obra.name}</option>
+                ))}
+              </select>
+              <ChevronDown className="absolute right-4 top-1/2 -translate-y-1/2 w-5 h-5 text-text-muted pointer-events-none" />
+            </div>
           </div>
-        </div>
+        ) : (
+          <div className="space-y-1.5">
+            <label className="text-xs font-bold tracking-wider text-text-muted uppercase">Obra Asignada</label>
+            <div className="w-full bg-surface border border-surface-hover rounded-xl px-4 py-3.5 text-text-main font-bold">
+              {obras.find(o => o.id === activeObraId)?.name || 'Cargando...'}
+            </div>
+          </div>
+        )}
 
         {/* Rubro */}
         <div className="space-y-1.5">

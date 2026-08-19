@@ -6,6 +6,7 @@ import Logo from './Logo';
 
 interface CalendarViewProps {
   navigate: (screen: Screen) => void;
+  activeObraId: number | 'general';
 }
 
 interface Note {
@@ -22,12 +23,12 @@ export const OBRAS_COLORS: Record<string, { name: string, color: string, textCol
   'general': { name: 'General', color: 'bg-surface-hover', textColor: 'text-text-muted' }
 };
 
-export default function CalendarView({ navigate }: CalendarViewProps) {
+export default function CalendarView({ navigate, activeObraId }: CalendarViewProps) {
   const [selectedDay, setSelectedDay] = useState(23);
   const [showNewNote, setShowNewNote] = useState(false);
   const [newNoteText, setNewNoteText] = useState('');
   const [newNoteTime, setNewNoteTime] = useState('08:00');
-  const [newNoteObra, setNewNoteObra] = useState('general');
+  const [newNoteObra, setNewNoteObra] = useState<string>(activeObraId.toString());
   
   // Notas de prueba con Obras asignadas
   const [notes, setNotes] = useState<Record<number, Note[]>>({
@@ -204,18 +205,27 @@ export default function CalendarView({ navigate }: CalendarViewProps) {
             <h3 className="text-lg font-bold text-text-main mb-4">Nueva Notificación</h3>
             
             <div className="space-y-4 mb-6">
-              <div>
-                <label className="text-xs font-bold tracking-wider text-text-muted uppercase mb-1.5 block">Obra Asociada</label>
-                <select 
-                  value={newNoteObra}
-                  onChange={(e) => setNewNoteObra(e.target.value)}
-                  className="w-full bg-background-alt border border-surface-hover rounded-xl px-4 py-3 text-text-main focus:outline-none focus:border-primary appearance-none"
-                >
-                  {Object.entries(OBRAS_COLORS).map(([id, obra]) => (
-                    <option key={id} value={id}>{obra.name}</option>
-                  ))}
-                </select>
-              </div>
+              {activeObraId === 'general' ? (
+                <div>
+                  <label className="text-xs font-bold tracking-wider text-text-muted uppercase mb-1.5 block">Obra Asociada</label>
+                  <select 
+                    value={newNoteObra}
+                    onChange={(e) => setNewNoteObra(e.target.value)}
+                    className="w-full bg-background-alt border border-surface-hover rounded-xl px-4 py-3 text-text-main focus:outline-none focus:border-primary appearance-none"
+                  >
+                    {Object.entries(OBRAS_COLORS).map(([id, obra]) => (
+                      <option key={id} value={id}>{obra.name}</option>
+                    ))}
+                  </select>
+                </div>
+              ) : (
+                <div>
+                  <label className="text-xs font-bold tracking-wider text-text-muted uppercase mb-1.5 block">Obra Asignada</label>
+                  <div className="w-full bg-background-alt border border-surface-hover rounded-xl px-4 py-3 text-text-main font-bold">
+                    {OBRAS_COLORS[activeObraId.toString()]?.name || 'Obra Desconocida'}
+                  </div>
+                </div>
+              )}
               <div>
                 <label className="text-xs font-bold tracking-wider text-text-muted uppercase mb-1.5 block">Hora de Aviso</label>
                 <input 

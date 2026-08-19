@@ -1,12 +1,63 @@
-import { ArrowLeft, Bell, Briefcase, Calendar, ChevronDown, Hammer, Receipt, Wallet } from 'lucide-react';
+import { ArrowLeft, Bell, Briefcase, Calendar, FileText, Hammer, Receipt, Wallet } from 'lucide-react';
+import { useState, useEffect } from 'react';
 import { Screen } from '../types';
 import Logo from './Logo';
+import { supabase } from '../lib/supabaseClient';
 
 interface DashboardProps {
   navigate: (screen: Screen) => void;
+  activeObraId: number | 'general';
 }
 
-export default function Dashboard({ navigate }: DashboardProps) {
+export default function Dashboard({ navigate, activeObraId }: DashboardProps) {
+  const [obraName, setObraName] = useState('Obra General');
+  const [gastosTotales, setGastosTotales] = useState(0);
+  const [gastosMateriales, setGastosMateriales] = useState(0);
+  const [gastosManoObra, setGastosManoObra] = useState(0);
+  const [gastosVarios, setGastosVarios] = useState(0);
+
+  useEffect(() => {
+    const savedObras = localStorage.getItem('obras_list');
+    let currentName = 'General';
+    if (savedObras && activeObraId !== 'general') {
+      const obras = JSON.parse(savedObras);
+      const obra = obras.find((o: any) => o.id === activeObraId);
+      if (obra) currentName = obra.name;
+    }
+    setObraName(currentName);
+
+    const fetchGastos = async () => {
+      const { data, error } = await supabase.from('gastos').select('amount, subtitle, type');
+      if (error) return;
+
+      let total = 0, mat = 0, mano = 0, varios = 0;
+      data.forEach(gasto => {
+        const gastoObraName = gasto.subtitle?.split(' • ')[0];
+        if (gastoObraName === currentName || (activeObraId === 'general' && gastoObraName === 'General')) {
+          total += gasto.amount || 0;
+          if (gasto.type === 'materiales') mat += gasto.amount || 0;
+          if (gasto.type === 'mano_obra') mano += gasto.amount || 0;
+          if (gasto.type === 'varios') varios += gasto.amount || 0;
+        }
+      });
+      setGastosTotales(total);
+      setGastosMateriales(mat);
+      setGastosManoObra(mano);
+      setGastosVarios(varios);
+    };
+
+    fetchGastos();
+  }, [activeObraId]);
+
+  const formatCurrency = (amount: number) => {
+    return new Intl.NumberFormat('es-AR', {
+      style: 'currency',
+      currency: 'ARS',
+      minimumFractionDigits: 0,
+      maximumFractionDigits: 0
+    }).format(amount);
+  };
+
   const days = [
     { name: 'L', date: '21', active: false },
     { name: 'M', date: '22', active: false },
@@ -27,7 +78,7 @@ export default function Dashboard({ navigate }: DashboardProps) {
             <ArrowLeft className="w-5 h-5" />
           </button>
         </div>
-        <h1 className="text-text-main font-semibold text-lg truncate flex-1 mx-4 text-center hidden md:block">Obra Activa: Casa 42</h1>
+        <h1 className="text-text-main font-semibold text-lg truncate flex-1 mx-4 text-center hidden md:block">{obraName}</h1>
         <div className="flex items-center space-x-4 text-text-muted">
           <button onClick={() => navigate('notifications')} className="relative hover:text-text-main transition-colors">
             <Bell className="w-6 h-6" />
@@ -36,14 +87,13 @@ export default function Dashboard({ navigate }: DashboardProps) {
         </div>
       </header>
 
-
       <main className="px-4 py-6 space-y-6 max-w-md mx-auto">
         {/* Full Date Header */}
         <div>
           <h2 className="text-xl font-bold text-text-main capitalize">
             {new Date().toLocaleDateString('es-AR', { weekday: 'long', day: 'numeric', month: 'long' })}
           </h2>
-          <p className="text-sm text-text-muted">Obra Activa: Casa 42</p>
+          <p className="text-sm text-text-muted">Obra Activa: {obraName}</p>
         </div>
 
         {/* Date & Period Filter Bar */}
@@ -78,13 +128,7 @@ export default function Dashboard({ navigate }: DashboardProps) {
           <div className="text-center space-y-2">
             <h2 className="text-xs text-text-muted font-bold tracking-widest uppercase">Resumen General</h2>
             <h3 className="text-green-500 font-bold text-lg">Gasto Total Acumulado</h3>
-            <p className="text-4xl font-extrabold text-green-500 tracking-tight">$1.250.000</p>
-            <div className="inline-flex items-center space-x-1 bg-background-alt px-3 py-1 rounded-full border border-surface-hover mt-2">
-              <svg className="w-4 h-4 text-secondary" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 7h8m0 0v8m0-8l-8 8-4-4-6 6" />
-              </svg>
-              <span className="text-xs font-semibold text-text-main">+12% vs. mes anterior</span>
-            </div>
+            <p className="text-4xl font-extrabold text-green-500 tracking-tight">{formatCurrency(gastosTotales)}</p>
           </div>
         </div>
 
@@ -98,7 +142,7 @@ export default function Dashboard({ navigate }: DashboardProps) {
               </div>
               <div className="flex-1">
                 <h3 className="text-text-main font-semibold text-lg">Materiales / Compras</h3>
-                <p className="text-text-muted text-sm mt-1">Subtotal: <span className="text-text-main font-bold">$450.000</span></p>
+                <p className="text-text-muted text-sm mt-1">Subtotal: <span className="text-text-main font-bold">{formatCurrency(gastosMateriales)}</span></p>
               </div>
             </div>
             <button
@@ -117,7 +161,7 @@ export default function Dashboard({ navigate }: DashboardProps) {
               </div>
               <div className="flex-1">
                 <h3 className="text-text-main font-semibold text-lg">Mano de Obra</h3>
-                <p className="text-text-muted text-sm mt-1">Subtotal: <span className="text-text-main font-bold">$600.000</span></p>
+                <p className="text-text-muted text-sm mt-1">Subtotal: <span className="text-text-main font-bold">{formatCurrency(gastosManoObra)}</span></p>
               </div>
             </div>
             <button
@@ -125,6 +169,25 @@ export default function Dashboard({ navigate }: DashboardProps) {
               className="w-full bg-primary hover:bg-primary-hover text-background font-bold uppercase tracking-wider text-sm py-3.5 rounded-xl transition-colors"
             >
               NUEVO CERTIFICADO
+            </button>
+          </div>
+
+          {/* Gastos Varios */}
+          <div className="bg-surface rounded-2xl p-5 border border-surface-hover flex flex-col space-y-4">
+            <div className="flex items-start space-x-4">
+              <div className="p-3 bg-background-alt rounded-xl text-primary">
+                <FileText className="w-6 h-6" />
+              </div>
+              <div className="flex-1">
+                <h3 className="text-text-main font-semibold text-lg">Gastos Varios</h3>
+                <p className="text-text-muted text-sm mt-1">Subtotal: <span className="text-text-main font-bold">{formatCurrency(gastosVarios)}</span></p>
+              </div>
+            </div>
+            <button
+              onClick={() => navigate('varios')}
+              className="w-full bg-primary hover:bg-primary-hover text-background font-bold uppercase tracking-wider text-sm py-3.5 rounded-xl transition-colors"
+            >
+              REGISTRAR GASTO
             </button>
           </div>
 
@@ -136,7 +199,7 @@ export default function Dashboard({ navigate }: DashboardProps) {
               </div>
               <div className="flex-1">
                 <h3 className="text-text-main font-semibold text-lg">Control de Gastos</h3>
-                <p className="text-text-muted text-sm mt-1">Subtotal: <span className="text-text-main font-bold">$200.000</span></p>
+                <p className="text-text-muted text-sm mt-1">Suma Total: <span className="text-text-main font-bold">{formatCurrency(gastosTotales)}</span></p>
               </div>
             </div>
             <button

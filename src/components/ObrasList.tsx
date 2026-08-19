@@ -2,42 +2,25 @@ import { Bell, ArrowRight, Plus, Calendar, Trash2, Edit2, Camera } from 'lucide-
 import { useState, useEffect } from 'react';
 import { Screen } from '../types';
 import Logo from './Logo';
+import { supabase } from '../lib/supabaseClient';
 
 interface ObrasListProps {
   navigate: (screen: Screen) => void;
+  setActiveObraId: (id: number | 'general') => void;
 }
 
-export default function ObrasList({ navigate }: ObrasListProps) {
-  const [obras, setObras] = useState(() => {
+export default function ObrasList({ navigate, setActiveObraId }: ObrasListProps) {
+  const [obras, setObras] = useState<any[]>(() => {
     const saved = localStorage.getItem('obras_list');
-    if (saved) {
-      return JSON.parse(saved);
-    }
+    if (saved) return JSON.parse(saved);
     return [
-      {
-        id: 1,
-        name: 'A3 Portillo',
-        status: 'En Ejecución',
-        spent: '$4,250.00',
-        image: 'https://images.unsplash.com/photo-1503387762-592deb58ef4e?auto=format&fit=crop&q=80&w=2000'
-      },
-      {
-        id: 2,
-        name: 'S1 Lar de Boedo',
-        status: 'En Ejecución',
-        spent: '$8,100.00',
-        image: 'https://images.unsplash.com/photo-1541888081-308104ebce39?auto=format&fit=crop&q=80&w=2000'
-      },
-      {
-        id: 3,
-        name: 'Casa 42',
-        status: 'En Ejecución',
-        spent: '$1,950.00',
-        image: 'https://images.unsplash.com/photo-1581094288338-2314dddb7ece?auto=format&fit=crop&q=80&w=2000'
-      }
+      { id: 1, name: 'A3 Portillo', status: 'En Ejecución', image: 'https://images.unsplash.com/photo-1503387762-592deb58ef4e?auto=format&fit=crop&q=80&w=2000' },
+      { id: 2, name: 'S1 Lar de Boedo', status: 'En Ejecución', image: 'https://images.unsplash.com/photo-1541888081-308104ebce39?auto=format&fit=crop&q=80&w=2000' },
+      { id: 3, name: 'Casa 42', status: 'En Ejecución', image: 'https://images.unsplash.com/photo-1581094288338-2314dddb7ece?auto=format&fit=crop&q=80&w=2000' }
     ];
   });
 
+  const [gastosTotales, setGastosTotales] = useState<Record<number, number>>({});
   const [deferredPrompt, setDeferredPrompt] = useState<any>(null);
   const [showInstallBanner, setShowInstallBanner] = useState(false);
 
@@ -54,6 +37,29 @@ export default function ObrasList({ navigate }: ObrasListProps) {
     window.addEventListener('beforeinstallprompt', handler);
     return () => window.removeEventListener('beforeinstallprompt', handler);
   }, []);
+
+  useEffect(() => {
+    const fetchGastos = async () => {
+      const { data, error } = await supabase.from('gastos').select('amount, subtitle');
+      if (error) {
+        console.error('Error fetching gastos:', error);
+        return;
+      }
+      
+      const totals: Record<number, number> = {};
+      obras.forEach(obra => totals[obra.id] = 0);
+
+      data?.forEach(gasto => {
+        const obraName = gasto.subtitle?.split(' • ')[0];
+        const obraMatch = obras.find(o => o.name === obraName);
+        if (obraMatch) {
+          totals[obraMatch.id] = (totals[obraMatch.id] || 0) + (gasto.amount || 0);
+        }
+      });
+      setGastosTotales(totals);
+    };
+    fetchGastos();
+  }, [obras]);
 
   const handleInstallApp = async () => {
     if (!deferredPrompt) return;
@@ -104,7 +110,6 @@ export default function ObrasList({ navigate }: ObrasListProps) {
       id: Date.now(),
       name: 'Nueva Obra',
       status: 'Planificación',
-      spent: '$ 0,00',
       image: 'https://images.unsplash.com/photo-1503387762-592deb58ef4e?auto=format&fit=crop&q=80&w=800',
     };
     setObras([...obras, newObra]);
@@ -113,12 +118,24 @@ export default function ObrasList({ navigate }: ObrasListProps) {
     setEditImage(newObra.image);
   };
 
+  const formatCurrency = (amount: number) => {
+    return new Intl.NumberFormat('es-AR', {
+      style: 'currency',
+      currency: 'ARS',
+      minimumFractionDigits: 0,
+      maximumFractionDigits: 0
+    }).format(amount);
+  };
+
   return (
     <div className="min-h-screen bg-background pb-20">
       {/* Install Banner */}
       {showInstallBanner && (
         <div className="bg-primary px-4 py-3 flex items-center justify-between sticky top-0 z-[60] shadow-md">
-          <div className="text-background font-bold text-sm">¿Quieres instalar la App?</div>
+          <div className="flex items-center space-x-3">
+            <div className="w-8 h-8 bg-background rounded-full flex items-center justify-center font-black text-primary text-xl">U</div>
+            <div className="text-background font-bold text-sm">¿Instalar UTU App?</div>
+          </div>
           <button 
             onClick={handleInstallApp}
             className="bg-background text-primary px-4 py-1.5 rounded-full font-bold text-xs shadow-sm hover:scale-105 transition-transform"
@@ -131,6 +148,12 @@ export default function ObrasList({ navigate }: ObrasListProps) {
       <header className="flex items-center justify-between px-4 py-4 bg-background border-b border-surface sticky top-[showInstallBanner ? '52px' : '0'] z-50">
         <Logo onClick={() => navigate('splash')} />
         <div className="flex items-center space-x-4 text-text-muted">
+          <button 
+            onClick={() => { setActiveObraId('general'); navigate('calendar'); }} 
+            className="relative hover:text-text-main transition-colors"
+          >
+            <Calendar className="w-6 h-6" />
+          </button>
           <button onClick={() => navigate('notifications')} className="relative hover:text-text-main transition-colors">
             <Bell className="w-6 h-6" />
             <span className="absolute top-0 right-0 w-2.5 h-2.5 bg-primary rounded-full border-2 border-background"></span>
@@ -176,6 +199,7 @@ export default function ObrasList({ navigate }: ObrasListProps) {
               className="bg-surface rounded-2xl overflow-hidden border border-surface-hover cursor-pointer hover:border-primary transition-all group relative"
               onClick={() => {
                 if (editingId !== obra.id) {
+                  setActiveObraId(obra.id);
                   navigate('dashboard');
                 }
               }}
@@ -237,7 +261,7 @@ export default function ObrasList({ navigate }: ObrasListProps) {
                 
                 <div className="space-y-1">
                   <p className="text-[10px] font-bold tracking-widest text-text-muted uppercase">Gasto Total Acumulado</p>
-                  <p className="text-3xl font-extrabold text-green-500 tracking-tight">{obra.spent}</p>
+                  <p className="text-3xl font-extrabold text-green-500 tracking-tight">{formatCurrency(gastosTotales[obra.id] || 0)}</p>
                 </div>
                 <button className="w-full mt-5 bg-background-alt group-hover:bg-primary group-hover:text-background text-text-main font-bold py-3 rounded-xl transition-colors flex items-center justify-center gap-2">
                   Ver Detalles <ArrowRight className="w-4 h-4" />
