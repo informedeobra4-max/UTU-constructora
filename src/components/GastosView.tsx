@@ -18,13 +18,17 @@ export default function GastosView({ navigate, activeObraId }: GastosViewProps) 
   const [activeObraName, setActiveObraName] = useState<string>('General');
 
   useEffect(() => {
-    const savedObras = localStorage.getItem('obras_list');
-    if (savedObras && activeObraId !== 'general') {
-      const obras = JSON.parse(savedObras);
-      const obra = obras.find((o: any) => o.id === activeObraId);
-      if (obra) setActiveObraName(obra.name);
-    }
-    fetchExpenses();
+    const init = async () => {
+      if (activeObraId !== 'general') {
+        const { data } = await supabase.from('obras').select('*').order('id', { ascending: true });
+        if (data) {
+          const obra = data.find((o: any) => o.id === activeObraId);
+          if (obra) setActiveObraName(obra.name);
+        }
+      }
+      fetchExpenses();
+    };
+    init();
   }, [activeObraId]);
 
   const fetchExpenses = async () => {

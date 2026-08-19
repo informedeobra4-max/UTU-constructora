@@ -10,23 +10,21 @@ interface ObrasListProps {
 }
 
 export default function ObrasList({ navigate, setActiveObraId }: ObrasListProps) {
-  const [obras, setObras] = useState<any[]>(() => {
-    const saved = localStorage.getItem('obras_list');
-    if (saved) return JSON.parse(saved);
-    return [
-      { id: 1, name: 'A3 Portillo', status: 'En Ejecución', image: 'https://images.unsplash.com/photo-1503387762-592deb58ef4e?auto=format&fit=crop&q=80&w=2000' },
-      { id: 2, name: 'S1 Lar de Boedo', status: 'En Ejecución', image: 'https://images.unsplash.com/photo-1541888081-308104ebce39?auto=format&fit=crop&q=80&w=2000' },
-      { id: 3, name: 'Casa 42', status: 'En Ejecución', image: 'https://images.unsplash.com/photo-1581094288338-2314dddb7ece?auto=format&fit=crop&q=80&w=2000' }
-    ];
-  });
+  const [obras, setObras] = useState<any[]>([]);
 
   const [gastosTotales, setGastosTotales] = useState<Record<number, number>>({});
   const [deferredPrompt, setDeferredPrompt] = useState<any>(null);
   const [showInstallBanner, setShowInstallBanner] = useState(false);
 
   useEffect(() => {
-    localStorage.setItem('obras_list', JSON.stringify(obras));
-  }, [obras]);
+    const fetchObras = async () => {
+      const { data, error } = await supabase.from('obras').select('*').order('id', { ascending: true });
+      if (!error && data) {
+        setObras(data);
+      }
+    };
+    fetchObras();
+  }, []);
 
   useEffect(() => {
     const handler = (e: Event) => {
@@ -92,30 +90,45 @@ export default function ObrasList({ navigate, setActiveObraId }: ObrasListProps)
     setEditImage(obra.image);
   };
 
-  const handleSaveEdit = (id: number, e: React.MouseEvent) => {
+  const handleSaveEdit = async (id: number, e: React.MouseEvent) => {
     e.stopPropagation();
-    setObras(obras.map(o => o.id === id ? { ...o, name: editName, image: editImage } : o));
-    setEditingId(null);
-  };
-
-  const handleDelete = (id: number, e: React.MouseEvent) => {
-    e.stopPropagation();
-    if(confirm('¿Seguro que deseas eliminar esta obra?')) {
-      setObras(obras.filter(o => o.id !== id));
+    const { error } = await supabase.from('obras').update({ name: editName, image: editImage }).eq('id', id);
+    if (!error) {
+      setObras(obras.map(o => o.id === id ? { ...o, name: editName, image: editImage } : o));
+      setEditingId(null);
+    } else {
+      alert('Error al guardar: ' + error.message);
     }
   };
 
-  const handleAddObra = () => {
-    const newObra = {
-      id: Date.now(),
+  const handleDelete = async (id: number, e: React.MouseEvent) => {
+    e.stopPropagation();
+    if(confirm('¿Seguro que deseas eliminar esta obra?')) {
+      const { error } = await supabase.from('obras').delete().eq('id', id);
+      if (!error) {
+        setObras(obras.filter(o => o.id !== id));
+      } else {
+        alert('Error al eliminar: ' + error.message);
+      }
+    }
+  };
+
+  const handleAddObra = async () => {
+    const newObraData = {
       name: 'Nueva Obra',
       status: 'Planificación',
       image: 'https://images.unsplash.com/photo-1503387762-592deb58ef4e?auto=format&fit=crop&q=80&w=800',
     };
-    setObras([...obras, newObra]);
-    setEditingId(newObra.id);
-    setEditName(newObra.name);
-    setEditImage(newObra.image);
+    const { data, error } = await supabase.from('obras').insert([newObraData]).select();
+    if (!error && data && data.length > 0) {
+      const newObra = data[0];
+      setObras([...obras, newObra]);
+      setEditingId(newObra.id);
+      setEditName(newObra.name);
+      setEditImage(newObra.image);
+    } else {
+      alert('Error al crear obra');
+    }
   };
 
   const formatCurrency = (amount: number) => {

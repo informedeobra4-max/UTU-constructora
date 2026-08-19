@@ -28,8 +28,11 @@ export default function ManoObraForm({ navigate, activeObraId }: ManoObraFormPro
   const [imagePreview, setImagePreview] = useState<string | null>(null);
 
   useEffect(() => {
-    const savedObras = localStorage.getItem('obras_list');
-    if (savedObras) setObras(JSON.parse(savedObras));
+    const fetchObras = async () => {
+      const { data } = await supabase.from('obras').select('*').order('id', { ascending: true });
+      if (data) setObras(data);
+    };
+    fetchObras();
   }, []);
 
   const handleImageUpload = (e: React.ChangeEvent<HTMLInputElement>) => {

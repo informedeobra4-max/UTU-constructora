@@ -2,6 +2,7 @@ import { ArrowLeft, Bell, RefreshCw, Send, MessageSquare } from 'lucide-react';
 import { useState, useEffect } from 'react';
 import { Screen } from '../types';
 import Logo from './Logo';
+import { supabase } from '../lib/supabaseClient';
 
 interface NotificationsProps {
   navigate: (screen: Screen) => void;
@@ -29,31 +30,29 @@ export default function Notifications({ navigate }: NotificationsProps) {
   const [selectedObra, setSelectedObra] = useState<number | 'general'>('general');
   const [newMessage, setNewMessage] = useState('');
 
-  const loadData = () => {
-    const savedObras = localStorage.getItem('obras_list');
-    if (savedObras) {
-      setObras(JSON.parse(savedObras));
-    }
+  const loadData = async () => {
+    const { data: obrasData } = await supabase.from('obras').select('*').order('id', { ascending: true });
+    if (obrasData) setObras(obrasData);
     
-    const savedNotifs = localStorage.getItem('app_notificaciones');
-    if (savedNotifs) {
-      setNotifications(JSON.parse(savedNotifs));
-    }
+    const { data: notifData } = await supabase.from('notificaciones').select('*').order('id', { ascending: false });
+    if (notifData) setNotifications(notifData);
   };
 
   useEffect(() => {
     loadData();
   }, []);
 
-  const handleMarkAsRead = (id: number) => {
-    const updated = notifications.map(n => 
-      n.id === id ? { ...n, isNew: false } : n
-    );
-    setNotifications(updated);
-    localStorage.setItem('app_notificaciones', JSON.stringify(updated));
+  const handleMarkAsRead = async (id: number) => {
+    const { error } = await supabase.from('notificaciones').update({ isNew: false }).eq('id', id);
+    if (!error) {
+      const updated = notifications.map(n => 
+        n.id === id ? { ...n, isNew: false } : n
+      );
+      setNotifications(updated);
+    }
   };
 
-  const handleAddMessage = () => {
+  const handleAddMessage = async () => {
     if (!newMessage.trim()) return;
 
     let obraName = 'General';
@@ -62,19 +61,23 @@ export default function Notifications({ navigate }: NotificationsProps) {
       if (obra) obraName = obra.name;
     }
 
-    const newNotif: AppNotification = {
-      id: Date.now(),
-      obraId: selectedObra,
+    const newNotif = {
+      obraId: selectedObra.toString(),
       obraName: obraName,
       message: newMessage.trim(),
       time: new Date().toLocaleString('es-AR', { dateStyle: 'short', timeStyle: 'short' }),
       isNew: true
     };
 
-    const updated = [newNotif, ...notifications];
-    setNotifications(updated);
-    localStorage.setItem('app_notificaciones', JSON.stringify(updated));
-    setNewMessage('');
+    const { data, error } = await supabase.from('notificaciones').insert([newNotif]).select();
+    
+    if (!error && data && data.length > 0) {
+      const updated = [data[0], ...notifications];
+      setNotifications(updated);
+      setNewMessage('');
+    } else {
+      alert('Error al enviar mensaje');
+    }
   };
 
   return (

@@ -17,18 +17,19 @@ export default function Dashboard({ navigate, activeObraId }: DashboardProps) {
   const [gastosVarios, setGastosVarios] = useState(0);
 
   useEffect(() => {
-    const savedObras = localStorage.getItem('obras_list');
-    let currentName = 'General';
-    if (savedObras && activeObraId !== 'general') {
-      const obras = JSON.parse(savedObras);
-      const obra = obras.find((o: any) => o.id === activeObraId);
-      if (obra) currentName = obra.name;
-    }
-    setObraName(currentName);
+    const init = async () => {
+      let currentName = 'General';
+      if (activeObraId !== 'general') {
+        const { data } = await supabase.from('obras').select('*').order('id', { ascending: true });
+        if (data) {
+          const obra = data.find((o: any) => o.id === activeObraId);
+          if (obra) currentName = obra.name;
+        }
+      }
+      setObraName(currentName);
 
-    const fetchGastos = async () => {
       const { data, error } = await supabase.from('gastos').select('amount, subtitle, type');
-      if (error) return;
+      if (error || !data) return;
 
       let total = 0, mat = 0, mano = 0, varios = 0;
       data.forEach(gasto => {
@@ -46,7 +47,7 @@ export default function Dashboard({ navigate, activeObraId }: DashboardProps) {
       setGastosVarios(varios);
     };
 
-    fetchGastos();
+    init();
   }, [activeObraId]);
 
   const formatCurrency = (amount: number) => {
