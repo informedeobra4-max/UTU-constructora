@@ -3,7 +3,6 @@ import { useState, useEffect } from 'react';
 import { Screen } from '../types';
 import Logo from './Logo';
 import { supabase } from '../lib/supabaseClient';
-import HorizontalCalendar from './HorizontalCalendar';
 
 interface DashboardProps {
   navigate: (screen: Screen) => void;
@@ -18,18 +17,12 @@ export default function Dashboard({ navigate, activeObraId }: DashboardProps) {
   const [gastosVarios, setGastosVarios] = useState(0);
 
   useEffect(() => {
+    const savedObras = localStorage.getItem('obras_list');
     let currentName = 'General';
-    if (activeObraId !== 'general') {
-      const savedObras = localStorage.getItem('obras_list');
-      if (savedObras) {
-        const obras = JSON.parse(savedObras);
-        const obra = obras.find((o: any) => o.id === activeObraId);
-        if (obra) currentName = obra.name;
-      }
-      // Aseguramos el nombre más reciente directo de la DB
-      supabase.from('obras').select('name').eq('id', activeObraId).single().then(({data, error}) => {
-        if (data && !error) setObraName(data.name);
-      });
+    if (savedObras && activeObraId !== 'general') {
+      const obras = JSON.parse(savedObras);
+      const obra = obras.find((o: any) => o.id === activeObraId);
+      if (obra) currentName = obra.name;
     }
     setObraName(currentName);
 
@@ -65,7 +58,15 @@ export default function Dashboard({ navigate, activeObraId }: DashboardProps) {
     }).format(amount);
   };
 
-
+  const days = [
+    { name: 'L', date: '21', active: false },
+    { name: 'M', date: '22', active: false },
+    { name: 'M', date: '23', active: true },
+    { name: 'J', date: '24', active: false },
+    { name: 'V', date: '25', active: false },
+    { name: 'S', date: '26', active: false },
+    { name: 'D', date: '27', active: false },
+  ];
 
   return (
     <div className="min-h-screen bg-background pb-20">
@@ -96,17 +97,29 @@ export default function Dashboard({ navigate, activeObraId }: DashboardProps) {
         </div>
 
         {/* Date & Period Filter Bar */}
-        <div className="relative">
-          <HorizontalCalendar 
-            activeObraId={activeObraId} 
-            onDateSelect={() => navigate('calendar')} 
-          />
-          {/* Calendar trigger overlay for navigating */}
-          <div 
-            className="absolute top-2 left-2 w-12 h-12 rounded-xl cursor-pointer z-10" 
+        <div className="flex items-center space-x-4 bg-surface rounded-2xl p-2 border border-surface-hover">
+          <button 
             onClick={() => navigate('calendar')}
-            title="Ir al calendario completo"
-          ></div>
+            className="p-3 bg-surface-hover rounded-xl text-text-muted hover:text-primary transition-colors relative"
+          >
+            <Calendar className="w-5 h-5" />
+            <div className="absolute top-2 right-2 w-2 h-2 bg-primary rounded-full"></div>
+          </button>
+          <div className="flex flex-1 justify-between items-center overflow-x-auto hide-scrollbar px-2">
+            {days.map((day, idx) => (
+              <div
+                key={idx}
+                className={`flex flex-col items-center justify-center min-w-[36px] ${
+                  day.active ? 'text-primary' : 'text-text-muted opacity-60'
+                }`}
+              >
+                <span className="text-xs font-medium">{day.name}</span>
+                <span className={`text-sm ${day.active ? 'font-bold border-b-2 border-primary pb-1' : ''}`}>
+                  {day.date}
+                </span>
+              </div>
+            ))}
+          </div>
         </div>
 
         {/* Hero Card */}

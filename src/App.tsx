@@ -3,9 +3,7 @@
  * SPDX-License-Identifier: Apache-2.0
  */
 
-import { useState, useEffect } from 'react';
-import { useNotes } from './hooks/useNotes';
-import { playAlarmSound, initAudio } from './audio';
+import { useState } from 'react';
 import CalendarView from './components/CalendarView';
 import ComprasForm from './components/ComprasForm';
 import Dashboard from './components/Dashboard';
@@ -26,54 +24,6 @@ export default function App() {
     setCurrentScreen(screen);
     window.scrollTo(0, 0);
   };
-
-  const { notes, markNoteAsRung } = useNotes();
-
-  useEffect(() => {
-    // FORCE CACHE CLEAR FOR MIGRATION
-    const version = localStorage.getItem('app_version');
-    if (version !== 'v2.1') {
-      localStorage.removeItem('obras_list');
-      localStorage.removeItem('utu_notes');
-      localStorage.setItem('app_version', 'v2.1');
-      window.location.reload(); // Force a hard reload
-    }
-  }, []);
-
-  useEffect(() => {
-    const unlockAudio = () => {
-      initAudio();
-      window.removeEventListener('pointerdown', unlockAudio);
-      window.removeEventListener('touchstart', unlockAudio);
-    };
-    window.addEventListener('pointerdown', unlockAudio);
-    window.addEventListener('touchstart', unlockAudio);
-    
-    return () => {
-      window.removeEventListener('pointerdown', unlockAudio);
-      window.removeEventListener('touchstart', unlockAudio);
-    };
-  }, []);
-
-  useEffect(() => {
-    const interval = setInterval(() => {
-      const now = new Date();
-      const currentHours = now.getHours().toString().padStart(2, '0');
-      const currentMinutes = now.getMinutes().toString().padStart(2, '0');
-      const currentTime = `${currentHours}:${currentMinutes}`;
-      const currentDate = now.toISOString().split('T')[0];
-
-      notes.forEach(note => {
-        if (!note.hasRung && note.date === currentDate && note.time === currentTime) {
-          playAlarmSound();
-          alert(`¡Alarma! ${note.text}`);
-          markNoteAsRung(note.id);
-        }
-      });
-    }, 30000);
-
-    return () => clearInterval(interval);
-  }, [notes, markNoteAsRung]);
 
   return (
     <div className="font-sans antialiased text-text-main bg-background min-h-screen relative pb-6">
