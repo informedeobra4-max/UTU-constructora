@@ -4,7 +4,6 @@ import { Screen } from '../types';
 import Logo from './Logo';
 import { supabase } from '../lib/supabaseClient';
 import HorizontalCalendar from './HorizontalCalendar';
-import PWAInstallButton from './PWAInstallButton';
 
 interface ObrasListProps {
   navigate: (screen: Screen) => void;
@@ -113,7 +112,6 @@ export default function ObrasList({ navigate, setActiveObraId }: ObrasListProps)
 
   return (
     <div className="min-h-screen bg-background pb-20">
-      <PWAInstallButton />
       
       <header className="flex items-center justify-between px-4 py-4 bg-background border-b border-surface sticky top-0 z-50">
         <Logo onClick={() => navigate('splash')} />

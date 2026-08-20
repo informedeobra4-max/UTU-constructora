@@ -14,6 +14,7 @@ import VariosForm from './components/VariosForm';
 import Notifications from './components/Notifications';
 import ObrasList from './components/ObrasList';
 import SplashScreen from './components/SplashScreen';
+import PWAInstallButton from './components/PWAInstallButton';
 import { Screen } from './types';
 
 export default function App() {
@@ -45,6 +46,9 @@ export default function App() {
           </p>
         </div>
       )}
+
+      {/* Globito Flotante PWA - Siempre disponible hasta instalar o cerrar */}
+      <PWAInstallButton />
     </div>
   );
 }

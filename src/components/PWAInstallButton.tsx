@@ -1,27 +1,24 @@
-import { Download } from 'lucide-react';
+import { Download, X } from 'lucide-react';
 import { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
 
 export default function PWAInstallButton() {
   const [deferredPrompt, setDeferredPrompt] = useState<any>(null);
   const [isIOS, setIsIOS] = useState(false);
-  const [showIOSPrompt, setShowIOSPrompt] = useState(false);
+  const [showTooltip, setShowTooltip] = useState(false);
   const [isDismissed, setIsDismissed] = useState(false);
   const [isStandalone, setIsStandalone] = useState(false);
 
   useEffect(() => {
-    // Check if already installed
     const isAppInstalled = window.matchMedia('(display-mode: standalone)').matches || (window.navigator as any).standalone;
     setIsStandalone(isAppInstalled);
 
     if (isAppInstalled) return;
 
-    // iOS detection
     const userAgent = window.navigator.userAgent.toLowerCase();
     const isIosDevice = /iphone|ipad|ipod/.test(userAgent);
     setIsIOS(isIosDevice);
 
-    // Android/PC installation prompt
     const handler = (e: Event) => {
       e.preventDefault();
       setDeferredPrompt(e);
@@ -33,7 +30,7 @@ export default function PWAInstallButton() {
 
   const handleInstallClick = async () => {
     if (isIOS) {
-      setShowIOSPrompt(true);
+      setShowTooltip(true);
       return;
     }
 
@@ -51,46 +48,45 @@ export default function PWAInstallButton() {
   return (
     <AnimatePresence>
       <motion.div 
-        initial={{ y: 100, opacity: 0 }}
-        animate={{ y: 0, opacity: 1 }}
-        exit={{ y: 100, opacity: 0 }}
-        className="fixed bottom-6 left-1/2 -translate-x-1/2 z-[100] w-[90%] max-w-sm"
+        initial={{ scale: 0, opacity: 0 }}
+        animate={{ scale: 1, opacity: 1 }}
+        exit={{ scale: 0, opacity: 0 }}
+        className="fixed bottom-[40px] right-4 z-[110] flex flex-col items-end gap-2 pointer-events-auto"
       >
-        <div className="bg-surface/90 backdrop-blur-xl border border-primary/30 p-4 rounded-2xl shadow-[0_10px_40px_rgba(255,107,0,0.3)] flex flex-col gap-3">
-          
-          <div className="flex items-start justify-between gap-3">
-            <div className="flex-1">
-              <h4 className="text-text-main font-bold text-sm">Instalar UTU App</h4>
-              <p className="text-text-muted text-xs mt-0.5">Accede más rápido y sin conexión desde tu inicio.</p>
-            </div>
+        {showTooltip && isIOS && (
+          <motion.div 
+            initial={{ opacity: 0, y: 10 }}
+            animate={{ opacity: 1, y: 0 }}
+            className="bg-surface/95 backdrop-blur-md border border-surface-hover p-4 rounded-2xl shadow-xl w-64 relative"
+          >
             <button 
-              onClick={() => setIsDismissed(true)}
-              className="text-text-muted hover:text-text-main p-1 bg-background rounded-full"
+              onClick={() => setShowTooltip(false)}
+              className="absolute top-2 right-2 text-text-muted hover:text-text-main"
             >
-              ✕
+              <X className="w-4 h-4" />
             </button>
-          </div>
+            <h4 className="text-sm font-bold text-text-main mb-2">Instalar en iPhone</h4>
+            <p className="text-xs text-text-muted">
+              1. Toca el botón <strong>Compartir</strong> en la barra de Safari.<br/>
+              2. Elige <strong>"Agregar a Inicio"</strong>.
+            </p>
+          </motion.div>
+        )}
 
+        <div className="relative group">
           <button 
             onClick={handleInstallClick}
-            className="w-full bg-primary text-background font-bold py-3 rounded-xl flex items-center justify-center gap-2 hover:scale-[1.02] transition-transform shadow-md"
+            className="w-14 h-14 bg-primary text-background rounded-full flex items-center justify-center shadow-[0_0_20px_rgba(255,107,0,0.5)] hover:scale-105 transition-transform"
           >
-            <Download className="w-5 h-5" />
-            Descargar App
+            <Download className="w-6 h-6" />
           </button>
-
-          {showIOSPrompt && isIOS && (
-            <motion.div 
-              initial={{ height: 0, opacity: 0 }}
-              animate={{ height: 'auto', opacity: 1 }}
-              className="text-xs text-text-muted bg-background/50 p-3 rounded-lg border border-surface-hover mt-1"
-            >
-              Para instalar en iPhone/iPad: 
-              <br/>1. Toca el ícono de <strong>Compartir</strong> en Safari (el cuadrado con la flecha arriba).
-              <br/>2. Desliza hacia abajo y selecciona <strong>"Agregar a Inicio"</strong>.
-            </motion.div>
-          )}
-
+          
+          <button 
+            onClick={() => setIsDismissed(true)}
+            className="absolute -top-1 -right-1 w-5 h-5 bg-background border border-surface text-text-muted hover:text-text-main rounded-full flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity"
+          >
+            <X className="w-3 h-3" />
+          </button>
         </div>
       </motion.div>
     </AnimatePresence>
