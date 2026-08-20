@@ -1,4 +1,4 @@
-import { ArrowLeft, Bell, Wallet, FileSpreadsheet } from 'lucide-react';
+import { ArrowLeft, Bell, Wallet, FileSpreadsheet, DollarSign, TrendingDown, Landmark } from 'lucide-react';
 import { useState, useEffect } from 'react';
 import { Screen } from '../types';
 import Logo from './Logo';
@@ -13,6 +13,7 @@ interface DashboardProps {
 export default function Dashboard({ navigate, activeObraId }: DashboardProps) {
   const [obraName, setObraName] = useState('Obra General');
   const [gastosTotales, setGastosTotales] = useState(0);
+  const [ingresosTotales, setIngresosTotales] = useState(0);
   const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
@@ -35,8 +36,17 @@ export default function Dashboard({ navigate, activeObraId }: DashboardProps) {
         const gastoObraName = gasto.subtitle?.split(' • ')[0];
         if (gastoObraName === currentName || (activeObraId === 'general' && gastoObraName === 'General')) {
           total += gasto.amount || 0;
-        }
-      });
+      const { data: ingresosData } = await supabase.from('ingresos').select('monto, obra_id');
+      let tIngresos = 0;
+      if (ingresosData) {
+        ingresosData.forEach(ing => {
+          if (activeObraId === 'general' || ing.obra_id === activeObraId.toString()) {
+            tIngresos += ing.monto || 0;
+          }
+        });
+      }
+      setIngresosTotales(tIngresos);
+
       setGastosTotales(total);
       setIsLoading(false);
     };
@@ -105,13 +115,51 @@ export default function Dashboard({ navigate, activeObraId }: DashboardProps) {
           />
         </div>
 
-        {/* Hero Card */}
-        <div className="bg-surface rounded-2xl p-6 border border-green-500/20 relative overflow-hidden">
-          <div className="absolute top-0 left-0 w-full h-1 bg-green-500" />
-          <div className="text-center space-y-2">
-            <h2 className="text-xs text-text-muted font-bold tracking-widest uppercase">Resumen General</h2>
-            <h3 className="text-green-500 font-bold text-lg">Gasto Total Acumulado</h3>
-            <p className="text-4xl font-extrabold text-green-500 tracking-tight">{formatCurrency(gastosTotales)}</p>
+        {/* Hero Card - Módulo Financiero */}
+        <div className="space-y-3">
+          
+          {/* Valor Inicial */}
+          <div 
+            onClick={() => navigate('ingresos_view')}
+            className="bg-surface rounded-2xl p-5 border border-green-500/30 shadow-[0_5px_20px_rgba(34,197,94,0.15)] relative overflow-hidden cursor-pointer transition-transform active:scale-[0.98]"
+          >
+            <div className="absolute top-0 left-0 w-1.5 h-full bg-green-500" />
+            <div className="flex justify-between items-center">
+              <div>
+                <h2 className="text-[10px] text-text-muted font-black tracking-widest uppercase mb-1">Valor Inicial (Ingresos)</h2>
+                <p className="text-3xl font-extrabold text-green-500 tracking-tight">{formatCurrency(ingresosTotales)}</p>
+              </div>
+              <div className="p-3 bg-green-500/10 rounded-xl text-green-500">
+                <Landmark className="w-6 h-6" />
+              </div>
+            </div>
+            <div className="mt-2 text-xs text-text-muted">Toca para gestionar depósitos / aportes</div>
+          </div>
+
+          <div className="grid grid-cols-2 gap-3">
+            {/* Gasto Total Acumulado */}
+            <div className="bg-surface rounded-2xl p-4 border border-red-500/20 relative overflow-hidden">
+              <div className="absolute top-0 left-0 w-full h-1 bg-red-500" />
+              <div className="flex flex-col h-full justify-between">
+                <div className="flex items-center gap-1.5 mb-2">
+                  <TrendingDown className="w-4 h-4 text-red-500" />
+                  <h2 className="text-[9px] text-text-muted font-bold tracking-widest uppercase leading-tight">Total<br/>Gastado</h2>
+                </div>
+                <p className="text-lg font-bold text-red-500 tracking-tight">{formatCurrency(gastosTotales)}</p>
+              </div>
+            </div>
+
+            {/* Valor Restante */}
+            <div className="bg-surface rounded-2xl p-4 border border-blue-500/20 relative overflow-hidden">
+              <div className="absolute top-0 left-0 w-full h-1 bg-blue-500" />
+              <div className="flex flex-col h-full justify-between">
+                <div className="flex items-center gap-1.5 mb-2">
+                  <DollarSign className="w-4 h-4 text-blue-500" />
+                  <h2 className="text-[9px] text-text-muted font-bold tracking-widest uppercase leading-tight">Valor<br/>Restante</h2>
+                </div>
+                <p className="text-lg font-bold text-blue-500 tracking-tight">{formatCurrency(ingresosTotales - gastosTotales)}</p>
+              </div>
+            </div>
           </div>
         </div>
 

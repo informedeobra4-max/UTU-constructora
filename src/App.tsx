@@ -16,6 +16,8 @@ import ObrasList from './components/ObrasList';
 import PagosView from './components/PagosView';
 import PresupuestosView from './components/PresupuestosView';
 import PresupuestosForm from './components/PresupuestosForm';
+import IngresosView from './components/IngresosView';
+import IngresosForm from './components/IngresosForm';
 import SplashScreen from './components/SplashScreen';
 import PWAInstallButton from './components/PWAInstallButton';
 import { Screen } from './types';
@@ -44,6 +46,8 @@ export default function App() {
       {currentScreen === 'pagos_view' && <PagosView navigate={navigate} activeObraId={activeObraId} />}
       {currentScreen === 'presupuestos_view' && <PresupuestosView navigate={navigate} activeObraId={activeObraId} />}
       {currentScreen === 'presupuestos_form' && <PresupuestosForm navigate={navigate} activeObraId={activeObraId} />}
+      {currentScreen === 'ingresos_view' && <IngresosView navigate={navigate} activeObraId={activeObraId} />}
+      {currentScreen === 'ingresos_form' && <IngresosForm navigate={navigate} activeObraId={activeObraId} />}
       
       {currentScreen !== 'splash' && (
         <div className="fixed bottom-0 left-0 w-full py-1.5 bg-background border-t border-surface z-[100] text-center no-print flex items-center justify-center">
