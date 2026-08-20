@@ -100,23 +100,19 @@ export default function HorizontalCalendar({
   };
 
   return (
-    <div className="bg-surface rounded-2xl p-3 border border-surface-hover">
+    <div className="bg-surface rounded-2xl p-2 border border-surface-hover w-full">
       {showTitle && (
-        <div className="flex items-center justify-between mb-3 px-1">
+        <div className="flex items-center justify-between mb-2 px-2">
           <h2 className="text-text-main font-bold capitalize">
             {new Date(actualSelectedDate + 'T12:00:00').toLocaleDateString('es-AR', { month: 'long', year: 'numeric' })}
           </h2>
-          <Calendar className="w-5 h-5 text-primary" />
         </div>
       )}
       
       <div className="flex items-center relative">
         <div className="relative flex-1 flex items-center overflow-hidden">
-          {/* Lupa (Magnifying Glass Overlay) */}
-          <div className="absolute top-1 bottom-1 left-1/2 -translate-x-1/2 w-14 rounded-[14px] border border-primary/50 bg-primary/10 backdrop-blur-[1px] pointer-events-none z-20 shadow-[0_0_15px_rgba(255,107,0,0.15)] flex flex-col justify-between items-center py-1.5">
-            <div className="w-4 h-0.5 bg-primary/40 rounded-full"></div>
-            <div className="w-4 h-0.5 bg-primary/40 rounded-full"></div>
-          </div>
+          {/* Lupa Redonda (Magnifying Glass Overlay) */}
+          <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[68px] h-[68px] rounded-full border-[3px] border-white/20 bg-white/5 backdrop-blur-[2px] pointer-events-none z-20 shadow-[0_4px_25px_rgba(255,107,0,0.15),inset_0_4px_10px_rgba(255,255,255,0.2)]"></div>
 
           <div 
             ref={scrollRef}
@@ -134,25 +130,18 @@ export default function HorizontalCalendar({
               <button
                 key={day.dateStr}
                 onClick={() => onDateSelect?.(day.dateStr)}
-                className={`snap-center flex-shrink-0 flex flex-col items-center justify-center w-14 h-[60px] rounded-xl transition-all duration-200 relative ${
-                  day.isToday && !day.isSelected ? 'border border-primary bg-primary/10' : ''
-                } ${
-                  day.isSelected 
-                    ? 'bg-primary text-background shadow-md' 
-                    : 'text-text-muted hover:bg-surface-hover hover:text-text-main'
-                } ${isCenter ? 'scale-110 z-10 font-black' : 'scale-90 opacity-70'}`}
+                className={`snap-center flex-shrink-0 flex flex-col items-center justify-center w-[68px] h-[68px] rounded-full transition-all duration-300 relative ${
+                  day.isToday ? 'text-primary' : 'text-text-muted hover:text-text-main'
+                } ${isCenter ? 'scale-[1.3] z-10 text-primary drop-shadow-[0_0_8px_rgba(255,107,0,0.5)]' : 'scale-90 opacity-60'}`}
               >
-                <span className="text-[10px] font-bold uppercase mb-0.5">{dayName}</span>
-                <span className={`font-black ${isCenter ? 'text-xl' : 'text-sm'}`}>
+                <span className={`text-[10px] font-bold uppercase mb-0.5 ${isCenter ? 'text-primary' : ''}`}>{dayName}</span>
+                <span className={`font-black ${isCenter ? 'text-2xl' : 'text-sm'}`}>
                   {dayNum}
                 </span>
                 
                 {/* Dot for notes */}
-                {day.hasNote && !day.isSelected && (
-                  <div className="absolute bottom-1 w-1.5 h-1.5 bg-primary rounded-full shadow-[0_0_5px_rgba(255,107,0,0.5)]"></div>
-                )}
-                {day.hasNote && day.isSelected && (
-                  <div className="absolute bottom-1 w-1.5 h-1.5 bg-background rounded-full"></div>
+                {day.hasNote && (
+                  <div className="absolute bottom-1.5 w-1.5 h-1.5 bg-green-500 rounded-full shadow-[0_0_5px_rgba(34,197,94,0.6)]"></div>
                 )}
               </button>
             );

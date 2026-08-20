@@ -1,8 +1,9 @@
-import { ArrowLeft, Bell, Briefcase, Calendar, FileText, Hammer, Receipt, Wallet } from 'lucide-react';
+import { ArrowLeft, Bell, Briefcase, FileText, Hammer, Receipt } from 'lucide-react';
 import { useState, useEffect } from 'react';
 import { Screen } from '../types';
 import Logo from './Logo';
 import { supabase } from '../lib/supabaseClient';
+import HorizontalCalendar from './HorizontalCalendar';
 
 interface DashboardProps {
   navigate: (screen: Screen) => void;
@@ -15,6 +16,7 @@ export default function Dashboard({ navigate, activeObraId }: DashboardProps) {
   const [gastosMateriales, setGastosMateriales] = useState(0);
   const [gastosManoObra, setGastosManoObra] = useState(0);
   const [gastosVarios, setGastosVarios] = useState(0);
+  const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
     const init = async () => {
@@ -45,6 +47,7 @@ export default function Dashboard({ navigate, activeObraId }: DashboardProps) {
       setGastosMateriales(mat);
       setGastosManoObra(mano);
       setGastosVarios(varios);
+      setIsLoading(false);
     };
 
     init();
@@ -88,7 +91,13 @@ export default function Dashboard({ navigate, activeObraId }: DashboardProps) {
         </div>
       </header>
 
-      <main className="px-4 py-6 space-y-6 max-w-md mx-auto">
+      <main className="px-4 py-6 space-y-6 max-w-md mx-auto relative min-h-[500px]">
+        {isLoading && (
+          <div className="absolute inset-0 z-10 bg-background/50 backdrop-blur-sm flex items-center justify-center rounded-xl">
+            <div className="w-10 h-10 border-4 border-primary/20 border-t-primary rounded-full animate-spin"></div>
+          </div>
+        )}
+
         {/* Full Date Header */}
         <div>
           <h2 className="text-xl font-bold text-text-main capitalize">
@@ -98,29 +107,11 @@ export default function Dashboard({ navigate, activeObraId }: DashboardProps) {
         </div>
 
         {/* Date & Period Filter Bar */}
-        <div className="flex items-center space-x-4 bg-surface rounded-2xl p-2 border border-surface-hover">
-          <button 
-            onClick={() => navigate('calendar')}
-            className="p-3 bg-surface-hover rounded-xl text-text-muted hover:text-primary transition-colors relative"
-          >
-            <Calendar className="w-5 h-5" />
-            <div className="absolute top-2 right-2 w-2 h-2 bg-primary rounded-full"></div>
-          </button>
-          <div className="flex flex-1 justify-between items-center overflow-x-auto hide-scrollbar px-2">
-            {days.map((day, idx) => (
-              <div
-                key={idx}
-                className={`flex flex-col items-center justify-center min-w-[36px] ${
-                  day.active ? 'text-primary' : 'text-text-muted opacity-60'
-                }`}
-              >
-                <span className="text-xs font-medium">{day.name}</span>
-                <span className={`text-sm ${day.active ? 'font-bold border-b-2 border-primary pb-1' : ''}`}>
-                  {day.date}
-                </span>
-              </div>
-            ))}
-          </div>
+        <div className="w-full" onClick={() => navigate('calendar')}>
+          <HorizontalCalendar 
+            activeObraId={activeObraId} 
+            showTitle={false} 
+          />
         </div>
 
         {/* Hero Card */}

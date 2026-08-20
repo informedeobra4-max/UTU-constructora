@@ -35,7 +35,19 @@ export default function Notifications({ navigate }: NotificationsProps) {
     if (obrasData) setObras(obrasData);
     
     const { data: notifData } = await supabase.from('notificaciones').select('*').order('id', { ascending: false });
-    if (notifData) setNotifications(notifData);
+    if (notifData) {
+      const parsed = notifData.map(n => {
+        let displayTime = n.time;
+        try {
+          const parsedTime = JSON.parse(n.time);
+          if (parsedTime.type === 'alarm') {
+            displayTime = `Alarma para: ${parsedTime.date} a las ${parsedTime.time}`;
+          }
+        } catch(e) {}
+        return { ...n, time: displayTime };
+      });
+      setNotifications(parsed);
+    }
   };
 
   useEffect(() => {

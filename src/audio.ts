@@ -83,20 +83,20 @@ export const playTickSound = () => {
   if (!ctx) return;
   const now = ctx.currentTime;
   
-  // Ruido de ruleta / clic mecánico
+  // Ruido mecánico tipo ruleta de casino (clic seco y corto)
   const osc = ctx.createOscillator();
   const gain = ctx.createGain();
   
-  osc.type = 'square';
-  osc.frequency.setValueAtTime(400, now); 
-  osc.frequency.exponentialRampToValueAtTime(50, now + 0.02); 
+  osc.type = 'triangle';
+  osc.frequency.setValueAtTime(800, now); 
+  osc.frequency.exponentialRampToValueAtTime(100, now + 0.015); 
   
-  gain.gain.setValueAtTime(0.3, now);
-  gain.gain.exponentialRampToValueAtTime(0.01, now + 0.02);
+  gain.gain.setValueAtTime(0.4, now);
+  gain.gain.exponentialRampToValueAtTime(0.001, now + 0.015);
   
   osc.connect(gain);
   gain.connect(ctx.destination);
   
   osc.start(now);
-  osc.stop(now + 0.03);
+  osc.stop(now + 0.02);
 };

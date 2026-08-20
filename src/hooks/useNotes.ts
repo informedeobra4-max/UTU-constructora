@@ -14,16 +14,36 @@ export function useNotes() {
   const [notes, setNotes] = useState<Note[]>([]);
 
   const fetchNotes = async () => {
-    const { data, error } = await supabase.from('notas').select('*').order('created_at', { ascending: true });
+    const { data, error } = await supabase.from('notificaciones').select('*').order('id', { ascending: false });
     if (data && !error) {
-      setNotes(data as Note[]);
+      const parsedNotes = data.map((n: any) => {
+        let dateStr = '';
+        let timeStr = n.time;
+        try {
+          const parsed = JSON.parse(n.time);
+          if (parsed.type === 'alarm') {
+            dateStr = parsed.date;
+            timeStr = parsed.time;
+          }
+        } catch(e) {
+          // ignore
+        }
+        return {
+          id: n.id,
+          text: n.message,
+          time: timeStr,
+          date: dateStr,
+          obraId: n.obraId,
+          hasRung: !n.isNew
+        };
+      }).filter(n => n.date !== '');
+      setNotes(parsedNotes);
     }
   };
 
   useEffect(() => {
     fetchNotes();
 
-    // Sincronización automática cada 15 segundos
     const interval = setInterval(() => {
       fetchNotes();
     }, 15000);
@@ -32,30 +52,30 @@ export function useNotes() {
   }, []);
 
   const addNote = async (note: Note) => {
-    // Optimistic update (usamos un ID temporal negativo)
-    const tempNote = { ...note, id: -Date.now() };
-    setNotes(prev => [...prev, tempNote]);
-
-    // Omitimos el id para que Supabase genere uno nuevo auto-incremental
-    const { id, ...noteData } = note;
-    await supabase.from('notas').insert([noteData]);
-    fetchNotes(); // Recuperamos el ID real de Supabase
+    const newNotif = {
+      obraId: note.obraId || 'general',
+      obraName: 'Alarma/Nota',
+      message: note.text,
+      time: JSON.stringify({ type: 'alarm', date: note.date, time: note.time }),
+      isNew: true
+    };
+    
+    await supabase.from('notificaciones').insert([newNotif]);
+    fetchNotes(); 
   };
 
   const deleteNote = async (id: number) => {
-    // Optimistic delete
     setNotes(prev => prev.filter(n => n.id !== id));
-    if (id > 0) { // Solo borramos en DB si el ID no es temporal
-      await supabase.from('notas').delete().eq('id', id);
+    if (id > 0) {
+      await supabase.from('notificaciones').delete().eq('id', id);
       fetchNotes();
     }
   };
 
   const markNoteAsRung = async (id: number) => {
-    // Optimistic update
     setNotes(prev => prev.map(n => n.id === id ? { ...n, hasRung: true } : n));
     if (id > 0) {
-      await supabase.from('notas').update({ hasRung: true }).eq('id', id);
+      await supabase.from('notificaciones').update({ isNew: false }).eq('id', id);
     }
   };
 
