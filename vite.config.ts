@@ -34,6 +34,25 @@ export default defineConfig(() => {
               purpose: 'any maskable'
             }
           ]
+        },
+        workbox: {
+          cleanupOutdatedCaches: true,
+          skipWaiting: true,
+          clientsClaim: true,
+          runtimeCaching: [
+            {
+              urlPattern: /^https:\/\/.*\.supabase\.co\/.*/i,
+              handler: 'NetworkFirst',
+              options: {
+                cacheName: 'supabase-cache',
+                expiration: {
+                  maxEntries: 50,
+                  maxAgeSeconds: 60 * 60 * 24 // 1 día
+                },
+                networkTimeoutSeconds: 5,
+              }
+            }
+          ]
         }
       })
     ],

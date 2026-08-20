@@ -1,5 +1,5 @@
 import React from 'react';
-import { ArrowLeft, Camera, Building2, User } from 'lucide-react';
+import { ArrowLeft, Camera, Building2, User, FileText, Upload } from 'lucide-react';
 import { useState, useEffect } from 'react';
 import { Screen } from '../types';
 import Logo from './Logo';
@@ -197,16 +197,45 @@ export default function PresupuestosForm({ navigate, activeObraId }: Presupuesto
         </div>
 
         {/* Comprobante */}
-        <div className="space-y-1.5 pt-2">
+        <div className="space-y-2 pt-2">
           <label className="text-xs font-bold tracking-wider text-text-muted uppercase">Documento / Foto (Opcional)</label>
-          <label className="w-full border-2 border-dashed border-secondary/50 rounded-xl bg-background-alt hover:bg-surface hover:border-blue-500 transition-all cursor-pointer flex flex-col items-center justify-center py-10 px-4 text-center group">
-            <input type="file" accept="image/*,application/pdf" capture="environment" className="hidden" onChange={handleImageUpload} />
-            <div className={`w-14 h-14 rounded-full flex items-center justify-center mb-4 transition-colors ${imagePreview ? 'bg-blue-500/20 text-blue-500' : 'bg-surface text-text-muted group-hover:bg-blue-500/20 group-hover:text-blue-500'}`}>
-              <Camera className="w-7 h-7" />
+          
+          {imagePreview ? (
+            <div className="relative w-full border-2 border-primary rounded-xl bg-background-alt py-8 px-4 text-center flex flex-col items-center justify-center">
+              <div className="w-14 h-14 rounded-full flex items-center justify-center mb-4 bg-primary/20 text-primary">
+                <FileText className="w-7 h-7" />
+              </div>
+              <span className="text-text-main font-medium">¡Archivo adjuntado exitosamente!</span>
+              <button 
+                onClick={(e) => { e.preventDefault(); setImageFile(null); setImagePreview(null); }} 
+                className="mt-4 px-6 py-2 bg-surface text-text-muted rounded-xl text-xs font-black uppercase tracking-widest hover:text-red-500 hover:bg-red-500/10 transition-colors"
+              >
+                Eliminar Archivo
+              </button>
             </div>
-            <span className="text-text-main font-medium">{imagePreview ? '¡Archivo adjuntado!' : 'Subir foto o PDF del presupuesto'}</span>
-            <span className="text-text-muted text-sm mt-1">{imagePreview ? 'Haz clic para cambiar' : 'Formatos: JPG, PNG, PDF'}</span>
-          </label>
+          ) : (
+            <div className="grid grid-cols-2 gap-3">
+              {/* Opción Cámara */}
+              <label className="border-2 border-dashed border-secondary/50 rounded-xl bg-background-alt hover:bg-surface hover:border-primary transition-all cursor-pointer flex flex-col items-center justify-center py-6 px-2 text-center group">
+                <input type="file" accept="image/*" capture="environment" className="hidden" onChange={handleImageUpload} />
+                <div className="w-12 h-12 rounded-full flex items-center justify-center mb-3 bg-surface text-text-muted group-hover:bg-primary/20 group-hover:text-primary transition-colors">
+                  <Camera className="w-6 h-6" />
+                </div>
+                <span className="text-text-main font-bold text-sm">Cámara</span>
+                <span className="text-text-muted text-[10px] mt-1 uppercase tracking-wider">Tomar Foto</span>
+              </label>
+
+              {/* Opción Archivo */}
+              <label className="border-2 border-dashed border-secondary/50 rounded-xl bg-background-alt hover:bg-surface hover:border-primary transition-all cursor-pointer flex flex-col items-center justify-center py-6 px-2 text-center group">
+                <input type="file" accept="image/*,application/pdf" className="hidden" onChange={handleImageUpload} />
+                <div className="w-12 h-12 rounded-full flex items-center justify-center mb-3 bg-surface text-text-muted group-hover:bg-primary/20 group-hover:text-primary transition-colors">
+                  <Upload className="w-6 h-6" />
+                </div>
+                <span className="text-text-main font-bold text-sm">Archivo</span>
+                <span className="text-text-muted text-[10px] mt-1 uppercase tracking-wider">Galería / PDF</span>
+              </label>
+            </div>
+          )}
         </div>
       </main>
 
