@@ -73,7 +73,16 @@ export default function ObrasList({ navigate, setActiveObraId }: ObrasListProps)
 
   const handleDelete = async (id: number, e: React.MouseEvent) => {
     e.stopPropagation();
-    if(confirm('¿Seguro que deseas eliminar esta obra?')) {
+    const pin = prompt('Se requiere autorización para eliminar una obra. Ingrese el PIN de 4 dígitos:');
+    
+    if (pin === null) return; // User cancelled
+    
+    if (pin !== '2600') {
+      alert('PIN incorrecto. Operación cancelada.');
+      return;
+    }
+
+    if (confirm('¿Estás COMPLETAMENTE seguro que deseas eliminar esta obra y TODOS sus datos?')) {
       const { error } = await supabase.from('obras').delete().eq('id', id);
       if (!error) {
         setObras(obras.filter(o => o.id !== id));

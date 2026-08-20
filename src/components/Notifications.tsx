@@ -1,4 +1,4 @@
-import { ArrowLeft, Bell, RefreshCw, Send, MessageSquare } from 'lucide-react';
+import { ArrowLeft, Bell, RefreshCw, Send, MessageSquare, Trash2 } from 'lucide-react';
 import { useState, useEffect } from 'react';
 import { Screen } from '../types';
 import Logo from './Logo';
@@ -61,6 +61,16 @@ export default function Notifications({ navigate }: NotificationsProps) {
         n.id === id ? { ...n, isNew: false } : n
       );
       setNotifications(updated);
+    }
+  };
+
+  const handleDeleteMessage = async (id: number, e: React.MouseEvent) => {
+    e.stopPropagation();
+    if (confirm('¿Seguro que deseas eliminar este mensaje?')) {
+      const { error } = await supabase.from('notificaciones').delete().eq('id', id);
+      if (!error) {
+        setNotifications(notifications.filter(n => n.id !== id));
+      }
     }
   };
 
@@ -172,6 +182,12 @@ export default function Notifications({ navigate }: NotificationsProps) {
                   <span className={`inline-block mb-1 text-[10px] uppercase font-bold tracking-wider px-2 py-0.5 rounded transition-opacity ${notif.isNew ? 'bg-primary/20 text-primary' : 'bg-surface-hover text-text-muted'} ${notif.isNew ? 'opacity-100' : 'opacity-60'}`}>
                     {notif.obraName}
                   </span>
+                  <button 
+                    onClick={(e) => handleDeleteMessage(notif.id, e)}
+                    className="p-1 text-text-muted hover:text-red-500 transition-colors z-10"
+                  >
+                    <Trash2 className="w-4 h-4" />
+                  </button>
                 </div>
                 
                 <p className={`text-sm mt-1 line-clamp-3 transition-colors ${notif.isNew ? 'text-text-main font-medium' : 'text-text-muted'}`}>
