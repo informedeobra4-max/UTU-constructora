@@ -111,8 +111,8 @@ export default function HorizontalCalendar({
       
       <div className="flex items-center relative">
         <div className="relative flex-1 flex items-center overflow-hidden">
-          {/* Lupa Redonda (Magnifying Glass Overlay) */}
-          <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[68px] h-[68px] rounded-full border-[3px] border-white/20 bg-white/5 backdrop-blur-[2px] pointer-events-none z-20 shadow-[0_4px_25px_rgba(255,107,0,0.15),inset_0_4px_10px_rgba(255,255,255,0.2)]"></div>
+          {/* Lupa Redonda Nítida */}
+          <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[68px] h-[68px] rounded-full border-[3px] border-white/20 bg-white/5 pointer-events-none z-20 shadow-[0_4px_25px_rgba(255,107,0,0.15),inset_0_4px_10px_rgba(255,255,255,0.2)]"></div>
 
           <div 
             ref={scrollRef}

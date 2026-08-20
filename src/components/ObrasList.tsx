@@ -4,6 +4,7 @@ import { Screen } from '../types';
 import Logo from './Logo';
 import { supabase } from '../lib/supabaseClient';
 import HorizontalCalendar from './HorizontalCalendar';
+import PWAInstallButton from './PWAInstallButton';
 
 interface ObrasListProps {
   navigate: (screen: Screen) => void;
@@ -13,10 +14,7 @@ interface ObrasListProps {
 export default function ObrasList({ navigate, setActiveObraId }: ObrasListProps) {
   const [obras, setObras] = useState<any[]>([]);
   const [isLoading, setIsLoading] = useState(true);
-
   const [gastosTotales, setGastosTotales] = useState<Record<number, number>>({});
-  const [deferredPrompt, setDeferredPrompt] = useState<any>(null);
-  const [showInstallBanner, setShowInstallBanner] = useState(false);
 
   useEffect(() => {
     const fetchObras = async () => {
@@ -27,16 +25,6 @@ export default function ObrasList({ navigate, setActiveObraId }: ObrasListProps)
       setIsLoading(false);
     };
     fetchObras();
-  }, []);
-
-  useEffect(() => {
-    const handler = (e: Event) => {
-      e.preventDefault();
-      setDeferredPrompt(e);
-      setShowInstallBanner(true);
-    };
-    window.addEventListener('beforeinstallprompt', handler);
-    return () => window.removeEventListener('beforeinstallprompt', handler);
   }, []);
 
   useEffect(() => {
@@ -61,16 +49,6 @@ export default function ObrasList({ navigate, setActiveObraId }: ObrasListProps)
     };
     fetchGastos();
   }, [obras]);
-
-  const handleInstallApp = async () => {
-    if (!deferredPrompt) return;
-    deferredPrompt.prompt();
-    const { outcome } = await deferredPrompt.userChoice;
-    if (outcome === 'accepted') {
-      setDeferredPrompt(null);
-      setShowInstallBanner(false);
-    }
-  };
 
   const [editingId, setEditingId] = useState<number | null>(null);
   const [editName, setEditName] = useState('');
@@ -135,23 +113,9 @@ export default function ObrasList({ navigate, setActiveObraId }: ObrasListProps)
 
   return (
     <div className="min-h-screen bg-background pb-20">
-      {/* Install Banner */}
-      {showInstallBanner && (
-        <div className="bg-primary px-4 py-3 flex items-center justify-between sticky top-0 z-[60] shadow-md">
-          <div className="flex items-center space-x-3">
-            <div className="w-8 h-8 bg-background rounded-full flex items-center justify-center font-black text-primary text-xl">U</div>
-            <div className="text-background font-bold text-sm">¿Instalar UTU App?</div>
-          </div>
-          <button 
-            onClick={handleInstallApp}
-            className="bg-background text-primary px-4 py-1.5 rounded-full font-bold text-xs shadow-sm hover:scale-105 transition-transform"
-          >
-            INSTALAR
-          </button>
-        </div>
-      )}
-
-      <header className="flex items-center justify-between px-4 py-4 bg-background border-b border-surface sticky top-[showInstallBanner ? '52px' : '0'] z-50">
+      <PWAInstallButton />
+      
+      <header className="flex items-center justify-between px-4 py-4 bg-background border-b border-surface sticky top-0 z-50">
         <Logo onClick={() => navigate('splash')} />
         <div className="flex items-center space-x-4 text-text-muted">
           <button 
