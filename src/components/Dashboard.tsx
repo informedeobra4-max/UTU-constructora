@@ -1,4 +1,4 @@
-import { ArrowLeft, Bell, Briefcase, FileText, Hammer, Receipt } from 'lucide-react';
+import { ArrowLeft, Bell, Wallet, FileSpreadsheet } from 'lucide-react';
 import { useState, useEffect } from 'react';
 import { Screen } from '../types';
 import Logo from './Logo';
@@ -13,9 +13,6 @@ interface DashboardProps {
 export default function Dashboard({ navigate, activeObraId }: DashboardProps) {
   const [obraName, setObraName] = useState('Obra General');
   const [gastosTotales, setGastosTotales] = useState(0);
-  const [gastosMateriales, setGastosMateriales] = useState(0);
-  const [gastosManoObra, setGastosManoObra] = useState(0);
-  const [gastosVarios, setGastosVarios] = useState(0);
   const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
@@ -33,20 +30,14 @@ export default function Dashboard({ navigate, activeObraId }: DashboardProps) {
       const { data, error } = await supabase.from('gastos').select('amount, subtitle, type');
       if (error || !data) return;
 
-      let total = 0, mat = 0, mano = 0, varios = 0;
+      let total = 0;
       data.forEach(gasto => {
         const gastoObraName = gasto.subtitle?.split(' • ')[0];
         if (gastoObraName === currentName || (activeObraId === 'general' && gastoObraName === 'General')) {
           total += gasto.amount || 0;
-          if (gasto.type === 'materiales') mat += gasto.amount || 0;
-          if (gasto.type === 'mano_obra') mano += gasto.amount || 0;
-          if (gasto.type === 'varios') varios += gasto.amount || 0;
         }
       });
       setGastosTotales(total);
-      setGastosMateriales(mat);
-      setGastosManoObra(mano);
-      setGastosVarios(varios);
       setIsLoading(false);
     };
 
@@ -125,82 +116,46 @@ export default function Dashboard({ navigate, activeObraId }: DashboardProps) {
         </div>
 
         {/* Primary Section Cards */}
-        <div className="space-y-4">
-          {/* Materiales */}
-          <div className="bg-surface rounded-2xl p-5 border border-surface-hover flex flex-col space-y-4">
+        <div className="space-y-4 pt-4">
+          
+          {/* Botón PRESUPUESTOS */}
+          <div className="bg-surface rounded-3xl p-5 border border-blue-500/30 shadow-[0_10px_30px_rgba(59,130,246,0.1)] flex flex-col space-y-4">
             <div className="flex items-start space-x-4">
-              <div className="p-3 bg-background-alt rounded-xl text-primary">
-                <Hammer className="w-6 h-6" />
+              <div className="p-4 bg-blue-500/10 rounded-2xl text-blue-500">
+                <FileSpreadsheet className="w-8 h-8" />
               </div>
-              <div className="flex-1">
-                <h3 className="text-text-main font-semibold text-lg">Materiales / Compras</h3>
-                <p className="text-text-muted text-sm mt-1">Subtotal: <span className="text-text-main font-bold">{formatCurrency(gastosMateriales)}</span></p>
+              <div className="flex-1 pt-1">
+                <h3 className="text-text-main font-black text-xl tracking-wide uppercase">Presupuestos</h3>
+                <p className="text-text-muted text-sm mt-1 font-medium">Gestión de cotizaciones y archivos</p>
               </div>
             </div>
             <button
-              onClick={() => navigate('compras')}
-              className="w-full bg-primary hover:bg-primary-hover text-background font-bold uppercase tracking-wider text-sm py-3.5 rounded-xl transition-colors"
+              onClick={() => navigate('presupuestos_view')}
+              className="w-full bg-blue-600 hover:bg-blue-500 text-white font-black uppercase tracking-widest text-sm py-4 rounded-xl shadow-[0_0_20px_rgba(37,99,235,0.4)] transition-all hover:scale-[1.02]"
             >
-              REGISTRAR COMPRA
+              ENTRAR A PRESUPUESTOS
             </button>
           </div>
 
-          {/* Mano de Obra */}
-          <div className="bg-surface rounded-2xl p-5 border border-surface-hover flex flex-col space-y-4">
+          {/* Botón PAGOS */}
+          <div className="bg-surface rounded-3xl p-5 border border-green-500/30 shadow-[0_10px_30px_rgba(34,197,94,0.1)] flex flex-col space-y-4">
             <div className="flex items-start space-x-4">
-              <div className="p-3 bg-background-alt rounded-xl text-primary">
-                <Briefcase className="w-6 h-6" />
+              <div className="p-4 bg-green-500/10 rounded-2xl text-green-500">
+                <Wallet className="w-8 h-8" />
               </div>
-              <div className="flex-1">
-                <h3 className="text-text-main font-semibold text-lg">Mano de Obra</h3>
-                <p className="text-text-muted text-sm mt-1">Subtotal: <span className="text-text-main font-bold">{formatCurrency(gastosManoObra)}</span></p>
+              <div className="flex-1 pt-1">
+                <h3 className="text-text-main font-black text-xl tracking-wide uppercase">Pagos</h3>
+                <p className="text-text-muted text-sm mt-1 font-medium">Compras, Mano de obra y Gastos</p>
               </div>
             </div>
             <button
-              onClick={() => navigate('mano_obra')}
-              className="w-full bg-primary hover:bg-primary-hover text-background font-bold uppercase tracking-wider text-sm py-3.5 rounded-xl transition-colors"
+              onClick={() => navigate('pagos_view')}
+              className="w-full bg-green-600 hover:bg-green-500 text-white font-black uppercase tracking-widest text-sm py-4 rounded-xl shadow-[0_0_20px_rgba(22,163,74,0.4)] transition-all hover:scale-[1.02]"
             >
-              NUEVO CERTIFICADO
+              ENTRAR A PAGOS
             </button>
           </div>
-
-          {/* Gastos Varios */}
-          <div className="bg-surface rounded-2xl p-5 border border-surface-hover flex flex-col space-y-4">
-            <div className="flex items-start space-x-4">
-              <div className="p-3 bg-background-alt rounded-xl text-primary">
-                <FileText className="w-6 h-6" />
-              </div>
-              <div className="flex-1">
-                <h3 className="text-text-main font-semibold text-lg">Gastos Varios</h3>
-                <p className="text-text-muted text-sm mt-1">Subtotal: <span className="text-text-main font-bold">{formatCurrency(gastosVarios)}</span></p>
-              </div>
-            </div>
-            <button
-              onClick={() => navigate('varios')}
-              className="w-full bg-primary hover:bg-primary-hover text-background font-bold uppercase tracking-wider text-sm py-3.5 rounded-xl transition-colors"
-            >
-              REGISTRAR GASTO
-            </button>
-          </div>
-
-          {/* Control de Gastos */}
-          <div className="bg-surface rounded-2xl p-5 border border-surface-hover flex flex-col space-y-4">
-            <div className="flex items-start space-x-4">
-              <div className="p-3 bg-background-alt rounded-xl text-primary">
-                <Receipt className="w-6 h-6" />
-              </div>
-              <div className="flex-1">
-                <h3 className="text-text-main font-semibold text-lg">Control de Gastos</h3>
-                <p className="text-text-muted text-sm mt-1">Suma Total: <span className="text-text-main font-bold">{formatCurrency(gastosTotales)}</span></p>
-              </div>
-            </div>
-            <button
-              onClick={() => navigate('gastos')}
-              className="w-full bg-primary hover:bg-primary-hover text-background font-bold uppercase tracking-wider text-sm py-3.5 rounded-xl transition-colors"
-            >
-              DESGLOSE GENERAL
-            </button>
-          </div>
+          
         </div>
       </main>
     </div>

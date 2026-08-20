@@ -13,6 +13,9 @@ import ManoObraForm from './components/ManoObraForm';
 import VariosForm from './components/VariosForm';
 import Notifications from './components/Notifications';
 import ObrasList from './components/ObrasList';
+import PagosView from './components/PagosView';
+import PresupuestosView from './components/PresupuestosView';
+import PresupuestosForm from './components/PresupuestosForm';
 import SplashScreen from './components/SplashScreen';
 import PWAInstallButton from './components/PWAInstallButton';
 import { Screen } from './types';
@@ -38,6 +41,9 @@ export default function App() {
       {currentScreen === 'mano_obra' && <ManoObraForm navigate={navigate} activeObraId={activeObraId} />}
       {currentScreen === 'varios' && <VariosForm navigate={navigate} activeObraId={activeObraId} />}
       {currentScreen === 'gastos' && <GastosView navigate={navigate} activeObraId={activeObraId} />}
+      {currentScreen === 'pagos_view' && <PagosView navigate={navigate} activeObraId={activeObraId} />}
+      {currentScreen === 'presupuestos_view' && <PresupuestosView navigate={navigate} activeObraId={activeObraId} />}
+      {currentScreen === 'presupuestos_form' && <PresupuestosForm navigate={navigate} activeObraId={activeObraId} />}
       
       {currentScreen !== 'splash' && (
         <div className="fixed bottom-0 left-0 w-full py-1.5 bg-background border-t border-surface z-[100] text-center no-print flex items-center justify-center">

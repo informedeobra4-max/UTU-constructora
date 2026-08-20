@@ -20,6 +20,7 @@ export default function ComprasForm({ navigate, activeObraId }: ComprasFormProps
   const [description, setDescription] = useState('');
   const [amount, setAmount] = useState('');
   const [provider, setProvider] = useState('');
+  const [encargado, setEncargado] = useState('');
   const [isSubmitting, setIsSubmitting] = useState(false);
   
   const [obras, setObras] = useState<Obra[]>([]);
@@ -69,7 +70,8 @@ export default function ComprasForm({ navigate, activeObraId }: ComprasFormProps
         title: description,
         subtitle: `${obraName} • ${provider || 'S/N'}`,
         amount: parseFloat(amount) || 0,
-        status: 'Pendiente'
+        status: 'Pendiente',
+        encargado: encargado
       }
     ]).select();
 
@@ -99,7 +101,7 @@ export default function ComprasForm({ navigate, activeObraId }: ComprasFormProps
 
   const handleSuccessComplete = () => {
     setShowSuccess(false);
-    navigate('dashboard');
+    navigate('pagos_view');
   };
 
   return (
@@ -230,11 +232,15 @@ export default function ComprasForm({ navigate, activeObraId }: ComprasFormProps
           <label className="text-xs font-bold tracking-wider text-text-muted uppercase">Responsable de la Compra</label>
           <div className="relative">
             <User className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-text-muted" />
-            <select className="w-full bg-surface border border-surface-hover rounded-xl pl-11 pr-10 py-3.5 text-text-main appearance-none focus:outline-none focus:border-primary focus:ring-1 focus:ring-primary transition-colors cursor-pointer">
-              <option value="" disabled selected>Seleccionar responsable</option>
-              <option>Pablo Bellido</option>
-              <option>Gaston Venier</option>
-              <option>Rodrigo Fernandez</option>
+            <select 
+              value={encargado}
+              onChange={(e) => setEncargado(e.target.value)}
+              className="w-full bg-surface border border-surface-hover rounded-xl pl-11 pr-10 py-3.5 text-text-main appearance-none focus:outline-none focus:border-primary focus:ring-1 focus:ring-primary transition-colors cursor-pointer"
+            >
+              <option value="" disabled>Seleccionar responsable</option>
+              <option value="Pablo Bellido">Pablo Bellido</option>
+              <option value="Gaston Venier">Gaston Venier</option>
+              <option value="Rodrigo Fernandez">Rodrigo Fernandez</option>
             </select>
             <ChevronDown className="absolute right-4 top-1/2 -translate-y-1/2 w-5 h-5 text-text-muted pointer-events-none" />
           </div>

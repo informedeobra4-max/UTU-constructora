@@ -19,6 +19,7 @@ export default function VariosForm({ navigate, activeObraId }: VariosFormProps) 
   const [provider, setProvider] = useState('');
   const [description, setDescription] = useState('');
   const [amount, setAmount] = useState('');
+  const [encargado, setEncargado] = useState('');
   const [showSuccess, setShowSuccess] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
   
@@ -69,7 +70,8 @@ export default function VariosForm({ navigate, activeObraId }: VariosFormProps) 
         title: description,
         subtitle: `${obraName} • ${provider || 'S/N'}`,
         amount: parseFloat(amount) || 0,
-        status: 'Pendiente'
+        status: 'Pendiente',
+        encargado: encargado
       }
     ]).select();
 
@@ -99,7 +101,7 @@ export default function VariosForm({ navigate, activeObraId }: VariosFormProps) 
 
   const handleSuccessComplete = () => {
     setShowSuccess(false);
-    navigate('dashboard');
+    navigate('pagos_view');
   };
 
   return (
@@ -180,6 +182,21 @@ export default function VariosForm({ navigate, activeObraId }: VariosFormProps) 
                 placeholder="0.00"
               />
             </div>
+          </div>
+
+          {/* Encargado */}
+          <div className="space-y-1.5">
+            <label className="text-xs font-bold tracking-wider text-text-muted uppercase">Encargado (Solicita/Genera)</label>
+            <select 
+              value={encargado}
+              onChange={(e) => setEncargado(e.target.value)}
+              className="w-full bg-background-alt border border-surface-hover rounded-xl px-4 py-3 text-text-main focus:outline-none focus:border-primary appearance-none font-medium"
+            >
+              <option value="" disabled>Seleccionar encargado...</option>
+              <option value="Pablo Bellido">Pablo Bellido</option>
+              <option value="Gaston Venier">Gaston Venier</option>
+              <option value="Rodrigo Fernandez">Rodrigo Fernandez</option>
+            </select>
           </div>
         </div>
 

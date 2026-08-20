@@ -18,8 +18,8 @@ interface Obra {
 export default function ManoObraForm({ navigate, activeObraId }: ManoObraFormProps) {
   const [showSuccess, setShowSuccess] = useState(false);
   const [workerName, setWorkerName] = useState('');
-  const [period, setPeriod] = useState('');
   const [amount, setAmount] = useState('');
+  const [encargado, setEncargado] = useState('');
   const [isSubmitting, setIsSubmitting] = useState(false);
 
   const [obras, setObras] = useState<Obra[]>([]);
@@ -69,7 +69,8 @@ export default function ManoObraForm({ navigate, activeObraId }: ManoObraFormPro
         title: period,
         subtitle: `${obraName} • ${workerName}`,
         amount: parseFloat(amount) || 0,
-        status: 'Pendiente'
+        status: 'Pendiente',
+        encargado: encargado
       }
     ]).select();
 
@@ -99,7 +100,7 @@ export default function ManoObraForm({ navigate, activeObraId }: ManoObraFormPro
 
   const handleSuccessComplete = () => {
     setShowSuccess(false);
-    navigate('dashboard');
+    navigate('pagos_view');
   };
 
   return (
@@ -306,6 +307,24 @@ export default function ManoObraForm({ navigate, activeObraId }: ManoObraFormPro
             placeholder="Ej: Colocación de cerámicos en baño principal, revoque fino, etc."
             className="w-full bg-surface border border-surface-hover rounded-xl px-4 py-3 text-text-main placeholder-text-muted/50 focus:outline-none focus:border-primary focus:ring-1 focus:ring-primary transition-colors resize-none"
           />
+        </div>
+
+        {/* Encargado */}
+        <div className="space-y-1.5">
+          <label className="text-xs font-bold tracking-wider text-text-muted uppercase">Encargado (Solicita/Genera)</label>
+          <div className="relative">
+            <select 
+              value={encargado}
+              onChange={(e) => setEncargado(e.target.value)}
+              className="w-full bg-surface border border-surface-hover rounded-xl px-4 py-3.5 text-text-main appearance-none focus:outline-none focus:border-primary focus:ring-1 focus:ring-primary transition-colors cursor-pointer"
+            >
+              <option value="" disabled>Seleccionar encargado...</option>
+              <option value="Pablo Bellido">Pablo Bellido</option>
+              <option value="Gaston Venier">Gaston Venier</option>
+              <option value="Rodrigo Fernandez">Rodrigo Fernandez</option>
+            </select>
+            <ChevronDown className="absolute right-4 top-1/2 -translate-y-1/2 w-5 h-5 text-text-muted pointer-events-none" />
+          </div>
         </div>
 
         {/* Comprobante */}
