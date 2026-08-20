@@ -11,7 +11,6 @@ export default defineConfig(() => {
       react(), 
       tailwindcss(),
       VitePWA({
-        selfDestroying: true, // DESTROY CACHE
         registerType: 'autoUpdate',
         includeAssets: ['favicon.png', 'apple-touch-icon.png', 'logo.jpeg'],
         manifest: {
@@ -23,13 +22,13 @@ export default defineConfig(() => {
           display: 'standalone',
           icons: [
             {
-              src: '/UTU-constructora/pwa-192x192.png',
+              src: '/pwa-192x192.png',
               sizes: '192x192',
               type: 'image/png',
               purpose: 'any maskable'
             },
             {
-              src: '/UTU-constructora/pwa-512x512.png',
+              src: '/pwa-512x512.png',
               sizes: '512x512',
               type: 'image/png',
               purpose: 'any maskable'

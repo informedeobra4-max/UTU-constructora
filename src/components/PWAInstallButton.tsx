@@ -6,6 +6,7 @@ export default function PWAInstallButton() {
   const [deferredPrompt, setDeferredPrompt] = useState<any>(null);
   const [isIOS, setIsIOS] = useState(false);
   const [showTooltip, setShowTooltip] = useState(false);
+  const [tooltipType, setTooltipType] = useState<'ios' | 'fallback'>('ios');
   const [isDismissed, setIsDismissed] = useState(false);
   const [isStandalone, setIsStandalone] = useState(false);
 
@@ -30,6 +31,7 @@ export default function PWAInstallButton() {
 
   const handleInstallClick = async () => {
     if (isIOS) {
+      setTooltipType('ios');
       setShowTooltip(true);
       return;
     }
@@ -40,10 +42,14 @@ export default function PWAInstallButton() {
       if (outcome === 'accepted') {
         setDeferredPrompt(null);
       }
+    } else {
+      // Fallback si el navegador no dispara el evento pero el usuario toca el botón
+      setTooltipType('fallback');
+      setShowTooltip(true);
     }
   };
 
-  if (isStandalone || isDismissed || (!deferredPrompt && !isIOS)) return null;
+  if (isStandalone || isDismissed) return null;
 
   return (
     <AnimatePresence>
@@ -53,7 +59,7 @@ export default function PWAInstallButton() {
         exit={{ scale: 0, opacity: 0 }}
         className="fixed bottom-[40px] right-4 z-[110] flex flex-col items-end gap-2 pointer-events-auto"
       >
-        {showTooltip && isIOS && (
+        {showTooltip && (
           <motion.div 
             initial={{ opacity: 0, y: 10 }}
             animate={{ opacity: 1, y: 0 }}
@@ -65,11 +71,23 @@ export default function PWAInstallButton() {
             >
               <X className="w-4 h-4" />
             </button>
-            <h4 className="text-sm font-bold text-text-main mb-2">Instalar en iPhone</h4>
-            <p className="text-xs text-text-muted">
-              1. Toca el botón <strong>Compartir</strong> en la barra de Safari.<br/>
-              2. Elige <strong>"Agregar a Inicio"</strong>.
-            </p>
+            
+            {tooltipType === 'ios' ? (
+              <>
+                <h4 className="text-sm font-bold text-text-main mb-2">Instalar en iPhone/iPad</h4>
+                <p className="text-xs text-text-muted">
+                  1. Toca el botón <strong>Compartir</strong> en la barra inferior de Safari.<br/>
+                  2. Elige <strong>"Agregar a Inicio"</strong>.
+                </p>
+              </>
+            ) : (
+              <>
+                <h4 className="text-sm font-bold text-text-main mb-2">Instalar App</h4>
+                <p className="text-xs text-text-muted">
+                  Abre el <strong>menú de opciones</strong> de tu navegador (los tres puntos arriba a la derecha) y selecciona <strong>"Instalar aplicación"</strong> o <strong>"Agregar a pantalla principal"</strong>.
+                </p>
+              </>
+            )}
           </motion.div>
         )}
 
