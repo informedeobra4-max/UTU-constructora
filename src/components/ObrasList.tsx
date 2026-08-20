@@ -3,6 +3,7 @@ import { useState, useEffect } from 'react';
 import { Screen } from '../types';
 import Logo from './Logo';
 import { supabase } from '../lib/supabaseClient';
+import HorizontalCalendar from './HorizontalCalendar';
 
 interface ObrasListProps {
   navigate: (screen: Screen) => void;
@@ -11,6 +12,7 @@ interface ObrasListProps {
 
 export default function ObrasList({ navigate, setActiveObraId }: ObrasListProps) {
   const [obras, setObras] = useState<any[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
 
   const [gastosTotales, setGastosTotales] = useState<Record<number, number>>({});
   const [deferredPrompt, setDeferredPrompt] = useState<any>(null);
@@ -22,6 +24,7 @@ export default function ObrasList({ navigate, setActiveObraId }: ObrasListProps)
       if (!error && data) {
         setObras(data);
       }
+      setIsLoading(false);
     };
     fetchObras();
   }, []);
@@ -72,16 +75,6 @@ export default function ObrasList({ navigate, setActiveObraId }: ObrasListProps)
   const [editingId, setEditingId] = useState<number | null>(null);
   const [editName, setEditName] = useState('');
   const [editImage, setEditImage] = useState('');
-
-  const days = [
-    { name: 'L', date: '21', active: false },
-    { name: 'M', date: '22', active: false },
-    { name: 'M', date: '23', active: true },
-    { name: 'J', date: '24', active: false },
-    { name: 'V', date: '25', active: false },
-    { name: 'S', date: '26', active: false },
-    { name: 'D', date: '27', active: false },
-  ];
 
   const handleEditClick = (obra: any, e: React.MouseEvent) => {
     e.stopPropagation();
@@ -174,7 +167,13 @@ export default function ObrasList({ navigate, setActiveObraId }: ObrasListProps)
         </div>
       </header>
 
-      <main className="px-4 py-8 max-w-md mx-auto space-y-6">
+      <main className="px-4 py-8 max-w-md mx-auto space-y-6 relative min-h-[500px]">
+        {isLoading && (
+          <div className="absolute inset-0 z-10 bg-background/50 backdrop-blur-sm flex items-center justify-center rounded-xl">
+            <div className="w-10 h-10 border-4 border-primary/20 border-t-primary rounded-full animate-spin"></div>
+          </div>
+        )}
+
         {/* Full Date Header */}
         <div className="mb-2">
           <h2 className="text-xl font-bold text-text-main capitalize">
@@ -183,26 +182,13 @@ export default function ObrasList({ navigate, setActiveObraId }: ObrasListProps)
           <p className="text-sm text-text-muted">Gestión de Obras</p>
         </div>
 
-        {/* Date & Period Filter Bar instead of title */}
-        <div className="flex items-center space-x-4 bg-surface rounded-2xl p-2 border border-surface-hover">
-          <button className="p-3 bg-surface-hover rounded-xl text-text-muted hover:text-primary transition-colors">
-            <Calendar className="w-5 h-5" />
-          </button>
-          <div className="flex flex-1 justify-between items-center overflow-x-auto hide-scrollbar px-2">
-            {days.map((day, idx) => (
-              <div
-                key={idx}
-                className={`flex flex-col items-center justify-center min-w-[36px] ${
-                  day.active ? 'text-primary' : 'text-text-muted opacity-60'
-                }`}
-              >
-                <span className="text-xs font-medium">{day.name}</span>
-                <span className={`text-sm ${day.active ? 'font-bold border-b-2 border-primary pb-1' : ''}`}>
-                  {day.date}
-                </span>
-              </div>
-            ))}
-          </div>
+        {/* Horizontal Calendar */}
+        <div className="w-full">
+          <HorizontalCalendar 
+            activeObraId="general" 
+            showTitle={false} 
+            onDateSelect={() => { setActiveObraId('general'); navigate('calendar'); }}
+          />
         </div>
 
         <div className="space-y-4 mt-8">
