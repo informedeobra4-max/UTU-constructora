@@ -1,3 +1,4 @@
+import React from 'react';
 import { ArrowLeft, Bell, Calendar as CalendarIcon, Clock, Plus, Trash2, Edit2, ChevronLeft, ChevronRight } from 'lucide-react';
 import { useState, useMemo, useEffect } from 'react';
 import { playAlarmSound } from '../audio';
@@ -281,7 +282,7 @@ export default function CalendarView({ navigate, activeObraId }: CalendarViewPro
                   className="w-full bg-background-alt border border-surface-hover rounded-xl px-4 py-3 text-text-main focus:outline-none focus:border-primary appearance-none font-bold"
                 >
                   {Object.entries(obrasMap).map(([id, obra]) => (
-                    <option key={id} value={id}>{obra.name}</option>
+                    <option key={id} value={id}>{(obra as any).name}</option>
                   ))}
                 </select>
               </div>

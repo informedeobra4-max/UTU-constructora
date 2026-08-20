@@ -1,3 +1,4 @@
+import React from 'react';
 import { useEffect, useRef, useState } from 'react';
 import { Calendar } from 'lucide-react';
 import { useNotes } from '../hooks/useNotes';

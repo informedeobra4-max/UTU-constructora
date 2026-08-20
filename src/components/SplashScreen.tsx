@@ -1,3 +1,4 @@
+import React from 'react';
 import { motion } from 'motion/react';
 import { useState, useEffect } from 'react';
 import { Download } from 'lucide-react';

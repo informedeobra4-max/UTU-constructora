@@ -1,3 +1,4 @@
+import React from 'react';
 import { ArrowLeft, Camera, ChevronDown } from 'lucide-react';
 import { useState, useEffect } from 'react';
 import { Screen } from '../types';
@@ -18,6 +19,7 @@ interface Obra {
 export default function ManoObraForm({ navigate, activeObraId }: ManoObraFormProps) {
   const [showSuccess, setShowSuccess] = useState(false);
   const [workerName, setWorkerName] = useState('');
+  const [period, setPeriod] = useState('');
   const [amount, setAmount] = useState('');
   const [encargado, setEncargado] = useState('');
   const [isSubmitting, setIsSubmitting] = useState(false);

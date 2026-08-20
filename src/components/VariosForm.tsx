@@ -1,3 +1,4 @@
+import React from 'react';
 import { ArrowLeft, Camera } from 'lucide-react';
 import { useState, useEffect } from 'react';
 import { Screen } from '../types';

@@ -36,6 +36,9 @@ export default function Dashboard({ navigate, activeObraId }: DashboardProps) {
         const gastoObraName = gasto.subtitle?.split(' • ')[0];
         if (gastoObraName === currentName || (activeObraId === 'general' && gastoObraName === 'General')) {
           total += gasto.amount || 0;
+        }
+      });
+      
       const { data: ingresosData } = await supabase.from('ingresos').select('monto, obra_id');
       let tIngresos = 0;
       if (ingresosData) {
