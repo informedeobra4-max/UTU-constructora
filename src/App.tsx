@@ -3,7 +3,8 @@
  * SPDX-License-Identifier: Apache-2.0
  */
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
+import OneSignal from 'react-onesignal';
 import CalendarView from './components/CalendarView';
 import ComprasForm from './components/ComprasForm';
 import Dashboard from './components/Dashboard';
@@ -29,6 +30,21 @@ export default function App() {
   const [currentScreen, setCurrentScreen] = useState<Screen>('splash');
   const [activeObraId, setActiveObraId] = useState<number | 'general'>('general');
   const [categoriaArchivos, setCategoriaArchivos] = useState<string>('PLANOS');
+
+  useEffect(() => {
+    const runOneSignal = async () => {
+      try {
+        await OneSignal.init({
+          appId: "9b92265d-0524-450b-98c4-679b5d57d0f6",
+          allowLocalhostAsSecureOrigin: true
+        });
+        OneSignal.Slidedown.promptPush();
+      } catch (e) {
+        console.error("OneSignal init error:", e);
+      }
+    };
+    runOneSignal();
+  }, []);
 
   const navigate = (screen: Screen) => {
     setCurrentScreen(screen);

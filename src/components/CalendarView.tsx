@@ -6,6 +6,7 @@ import { Screen } from '../types';
 import Logo from './Logo';
 import { useNotes, Note } from '../hooks/useNotes';
 import { supabase } from '../lib/supabaseClient';
+import { sendPushNotification } from '../lib/onesignal';
 
 interface CalendarViewProps {
   navigate: (screen: Screen) => void;
@@ -100,6 +101,10 @@ export default function CalendarView({ navigate, activeObraId }: CalendarViewPro
       date: noteDate,
       obraId: noteObra
     });
+
+    if (!editingNoteId) {
+      sendPushNotification(noteText);
+    }
 
     setShowModal(false);
     setSelectedDate(noteDate);
