@@ -116,11 +116,6 @@ export default function Dashboard({ navigate, activeObraId }: DashboardProps) {
       </header>
 
       <main className="px-4 py-6 space-y-6 max-w-md mx-auto relative min-h-[500px]">
-        {isLoading && (
-          <div className="absolute inset-0 z-10 bg-background/50 backdrop-blur-sm flex items-center justify-center rounded-xl">
-            <div className="w-10 h-10 border-4 border-primary/20 border-t-primary rounded-full animate-spin"></div>
-          </div>
-        )}
 
         {/* Full Date Header */}
         <div>

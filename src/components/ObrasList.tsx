@@ -267,12 +267,6 @@ export default function ObrasList({ navigate, setActiveObraId }: ObrasListProps)
       </div>
 
       <main className="px-4 py-8 max-w-md mx-auto space-y-6 relative min-h-[500px]">
-        {isLoading && (
-          <div className="absolute inset-0 z-10 bg-background/50 backdrop-blur-sm flex items-center justify-center rounded-xl">
-            <div className="w-10 h-10 border-4 border-primary/20 border-t-primary rounded-full animate-spin"></div>
-          </div>
-        )}
-
         {/* Full Date Header */}
         <div className="mb-2">
           <h2 className="text-xl font-bold text-text-main capitalize">
