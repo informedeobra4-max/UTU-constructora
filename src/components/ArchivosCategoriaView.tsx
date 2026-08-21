@@ -61,7 +61,7 @@ export default function ArchivosCategoriaView({ navigate, activeObraId, categori
       case 'PLANOS': return ['Todas', 'Arquitectura', 'Estructuras', 'Sanitario', 'Eléctrico', 'Agrimensura'];
       case 'RENDERS': return ['Todas', 'Volumetría', 'Fachadas', 'Video', 'Interiores'];
       case 'PUBLICIDAD': return ['Todas', 'Flyers', 'Logos', 'Promociones'];
-      case 'REGLAMENTOS': return ['Todas', 'Agua', 'Gas', 'Reglamento'];
+      case 'REGLAMENTOS': return ['Todas', 'Agua', 'Gas', 'Reglamento', 'Estudio de Suelo'];
       default: return ['Todas'];
     }
   };

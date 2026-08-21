@@ -24,7 +24,7 @@ export default function ArchivoForm({ navigate, activeObraId, categoria }: Archi
       case 'PLANOS': return ['Arquitectura', 'Estructuras', 'Sanitario', 'Eléctrico', 'Agrimensura', 'Otros'];
       case 'RENDERS': return ['Volumetría', 'Fachadas', 'Video', 'Interiores', 'Otros'];
       case 'PUBLICIDAD': return ['Flyers', 'Logos', 'Promociones', 'Otros'];
-      case 'REGLAMENTOS': return ['Agua', 'Gas', 'Reglamento', 'Otros'];
+      case 'REGLAMENTOS': return ['Agua', 'Gas', 'Reglamento', 'Estudio de Suelo', 'Otros'];
       default: return ['Otros'];
     }
   };
