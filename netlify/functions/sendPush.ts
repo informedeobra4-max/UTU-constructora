@@ -1,7 +1,7 @@
 import type { Config } from "@netlify/functions";
 
 const ONESIGNAL_APP_ID = "9b92265d-0524-450b-98c4-679b5d57d0f6";
-const ONESIGNAL_REST_API_KEY = "os_v2_app_" + "tojcmxifercyxggem6nv2v6q6zeulwmuli2u3b4cqzds6x4hk6srsr2ym4nrxcls7faiidrcmtqpdnimgura4pwr5rq6zqd7ezzuqvq";
+const ONESIGNAL_REST_API_KEY = process.env.ONESIGNAL_REST_API_KEY;
 
 export default async (req: Request) => {
   try {
