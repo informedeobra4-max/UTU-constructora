@@ -23,7 +23,15 @@ export default function HorizontalCalendar({
   const [centerIndex, setCenterIndex] = useState(-1);
   
   const [days, setDays] = useState<{ date: Date; isToday: boolean; isSelected: boolean; dateStr: string; hasNote: boolean }[]>([]);
-  const todayStr = new Date().toISOString().split('T')[0];
+  const getLocalDateStr = (d?: Date) => {
+    const date = d || new Date();
+    const year = date.getFullYear();
+    const month = String(date.getMonth() + 1).padStart(2, '0');
+    const day = String(date.getDate()).padStart(2, '0');
+    return `${year}-${month}-${day}`;
+  };
+
+  const todayStr = getLocalDateStr();
 
   const actualSelectedDate = selectedDate || todayStr;
 
@@ -36,7 +44,7 @@ export default function HorizontalCalendar({
     for (let i = -15; i <= 30; i++) {
       const d = new Date(today);
       d.setDate(today.getDate() + i);
-      const dateStr = d.toISOString().split('T')[0];
+      const dateStr = getLocalDateStr(d);
       
       const hasNote = notes.some(n => 
         n.date === dateStr && 

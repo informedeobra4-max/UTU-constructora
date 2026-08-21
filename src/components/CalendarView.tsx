@@ -24,7 +24,13 @@ const COLOR_PALETTE = [
 export default function CalendarView({ navigate, activeObraId }: CalendarViewProps) {
   const { notes, addNote, deleteNote } = useNotes();
   const [currentMonth, setCurrentMonth] = useState(() => new Date());
-  const [selectedDate, setSelectedDate] = useState(() => new Date().toISOString().split('T')[0]);
+  const [selectedDate, setSelectedDate] = useState(() => {
+    const d = new Date();
+    const year = d.getFullYear();
+    const month = String(d.getMonth() + 1).padStart(2, '0');
+    const day = String(d.getDate()).padStart(2, '0');
+    return `${year}-${month}-${day}`;
+  });
   
   const [obras, setObras] = useState<any[]>([]);
   const [obrasMap, setObrasMap] = useState<Record<string, any>>({
