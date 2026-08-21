@@ -33,13 +33,14 @@ export default function Dashboard({ navigate, activeObraId }: DashboardProps) {
       }
       setObraName(currentName);
 
-      const { data, error } = await supabase.from('gastos').select('amount, subtitle, type, moneda');
+      const { data, error } = await supabase.from('gastos').select('*');
       if (error || !data) return;
 
       let totalGastosARS = 0;
       data.forEach(gasto => {
-        const gastoObraName = gasto.subtitle?.split(' • ')[0];
-        if (gastoObraName === currentName || (activeObraId === 'general' && gastoObraName === 'General')) {
+        const gastoObraName = gasto.subtitle?.split(' • ')[0]?.trim();
+        const currentNameTrimmed = currentName.trim();
+        if (gastoObraName === currentNameTrimmed || (activeObraId === 'general' && gastoObraName === 'General')) {
           if (gasto.moneda === 'USD') {
             totalGastosARS += (gasto.amount || 0) * (parseFloat(localStorage.getItem('cotizacionDolar') || '1000'));
           } else {

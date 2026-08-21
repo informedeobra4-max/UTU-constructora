@@ -66,8 +66,7 @@ export default function ObrasList({ navigate, setActiveObraId }: ObrasListProps)
 
   useEffect(() => {
     const fetchFinances = async () => {
-      // 1. Fetch Gastos
-      const { data: gastos, error: errGastos } = await supabase.from('gastos').select('amount, subtitle, moneda');
+      const { data: gastos, error: errGastos } = await supabase.from('gastos').select('*');
       if (errGastos) console.error('Error fetching gastos:', errGastos);
       
       const totalsPorObra: Record<number, number> = {};
@@ -86,8 +85,8 @@ export default function ObrasList({ navigate, setActiveObraId }: ObrasListProps)
           totalGastosARS += amt;
         }
 
-        const obraName = gasto.subtitle?.split(' • ')[0];
-        const obraMatch = obras.find(o => o.name === obraName);
+        const obraName = gasto.subtitle?.split(' • ')[0]?.trim();
+        const obraMatch = obras.find(o => o.name?.trim() === obraName);
         if (obraMatch) {
           const amtInARS = gasto.moneda === 'USD' ? amt * currentDolar : amt;
           totalsPorObra[obraMatch.id] = (totalsPorObra[obraMatch.id] || 0) + amtInARS;
