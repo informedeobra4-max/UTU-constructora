@@ -4,6 +4,7 @@ import { useState, useEffect } from 'react';
 import { Screen } from '../types';
 import Logo from './Logo';
 import { supabase } from '../lib/supabaseClient';
+import OneSignal from 'react-onesignal';
 
 interface NotificationsProps {
   navigate: (screen: Screen) => void;
@@ -150,14 +151,30 @@ export default function Notifications({ navigate }: NotificationsProps) {
           </div>
         </div>
 
-        <div className="flex items-center justify-between">
-          <h2 className="text-sm font-bold text-text-muted uppercase tracking-wider">Bandeja de Entrada</h2>
+        <div className="flex flex-col gap-3">
+          <div className="flex items-center justify-between">
+            <h2 className="text-sm font-bold text-text-muted uppercase tracking-wider">Bandeja de Entrada</h2>
+            <button 
+              onClick={loadData}
+              className="flex items-center gap-1.5 px-3 py-1.5 text-xs font-bold text-primary bg-primary/10 rounded-lg hover:bg-primary/20 transition-colors"
+            >
+              <RefreshCw className="w-3.5 h-3.5" />
+              ACTUALIZAR
+            </button>
+          </div>
+          
           <button 
-            onClick={loadData}
-            className="flex items-center gap-1.5 px-3 py-1.5 text-xs font-bold text-primary bg-primary/10 rounded-lg hover:bg-primary/20 transition-colors"
+            onClick={() => {
+              if (OneSignal.Slidedown) {
+                OneSignal.Slidedown.promptPush();
+              } else {
+                alert("Las notificaciones aún se están cargando o no son compatibles con este dispositivo.");
+              }
+            }}
+            className="w-full flex items-center justify-center gap-2 px-4 py-3 text-sm font-bold text-white bg-blue-500 rounded-xl hover:bg-blue-600 transition-colors shadow-sm"
           >
-            <RefreshCw className="w-3.5 h-3.5" />
-            ACTUALIZAR
+            <Bell className="w-4 h-4" />
+            ACTIVAR NOTIFICACIONES EN ESTE TELÉFONO
           </button>
         </div>
 
