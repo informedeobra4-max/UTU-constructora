@@ -1,4 +1,4 @@
-import { ArrowLeft, Bell, Wallet, FileSpreadsheet, DollarSign, TrendingDown, Landmark } from 'lucide-react';
+import { ArrowLeft, Bell, Wallet, FileSpreadsheet, DollarSign, TrendingDown, Landmark, Paperclip } from 'lucide-react';
 import { useState, useEffect } from 'react';
 import { Screen } from '../types';
 import Logo from './Logo';
@@ -88,6 +88,9 @@ export default function Dashboard({ navigate, activeObraId }: DashboardProps) {
         </div>
         <h1 className="text-text-main font-semibold text-lg truncate flex-1 mx-4 text-center hidden md:block">{obraName}</h1>
         <div className="flex items-center space-x-4 text-text-muted">
+          <button onClick={() => navigate('info_obra')} className="relative hover:text-text-main transition-colors text-blue-400">
+            <Paperclip className="w-6 h-6" />
+          </button>
           <button onClick={() => navigate('notifications')} className="relative hover:text-text-main transition-colors">
             <Bell className="w-6 h-6" />
             <span className="absolute top-0 right-0 w-2.5 h-2.5 bg-primary rounded-full border-2 border-background"></span>
@@ -121,26 +124,25 @@ export default function Dashboard({ navigate, activeObraId }: DashboardProps) {
         {/* Hero Card - Módulo Financiero */}
         <div className="space-y-3">
           
-          {/* Valor Inicial */}
+          {/* Valor Restante (Grande y Verde) */}
           <div 
-            onClick={() => navigate('ingresos_view')}
-            className="bg-surface rounded-2xl p-5 border border-green-500/30 shadow-[0_5px_20px_rgba(34,197,94,0.15)] relative overflow-hidden cursor-pointer transition-transform active:scale-[0.98]"
+            className="bg-surface rounded-2xl p-5 border border-green-500/30 shadow-[0_5px_20px_rgba(34,197,94,0.15)] relative overflow-hidden"
           >
             <div className="absolute top-0 left-0 w-1.5 h-full bg-green-500" />
             <div className="flex justify-between items-center">
               <div>
-                <h2 className="text-[10px] text-text-muted font-black tracking-widest uppercase mb-1">Valor Inicial (Ingresos)</h2>
-                <p className="text-3xl font-extrabold text-green-500 tracking-tight">{formatCurrency(ingresosTotales)}</p>
+                <h2 className="text-[10px] text-text-muted font-black tracking-widest uppercase mb-1">Valor Restante</h2>
+                <p className="text-3xl font-extrabold text-green-500 tracking-tight">{formatCurrency(ingresosTotales - gastosTotales)}</p>
               </div>
               <div className="p-3 bg-green-500/10 rounded-xl text-green-500">
-                <Landmark className="w-6 h-6" />
+                <DollarSign className="w-6 h-6" />
               </div>
             </div>
-            <div className="mt-2 text-xs text-text-muted">Toca para gestionar depósitos / aportes</div>
+            <div className="mt-2 text-xs text-text-muted">Balance disponible en caja</div>
           </div>
 
           <div className="grid grid-cols-2 gap-3">
-            {/* Gasto Total Acumulado */}
+            {/* Gasto Total Acumulado (Rojo) */}
             <div className="bg-surface rounded-2xl p-4 border border-red-500/20 relative overflow-hidden">
               <div className="absolute top-0 left-0 w-full h-1 bg-red-500" />
               <div className="flex flex-col h-full justify-between">
@@ -152,15 +154,18 @@ export default function Dashboard({ navigate, activeObraId }: DashboardProps) {
               </div>
             </div>
 
-            {/* Valor Restante */}
-            <div className="bg-surface rounded-2xl p-4 border border-blue-500/20 relative overflow-hidden">
+            {/* Valor Inicial (Azul y Clickeable) */}
+            <div 
+              onClick={() => navigate('ingresos_view')}
+              className="bg-surface rounded-2xl p-4 border border-blue-500/20 relative overflow-hidden cursor-pointer transition-transform active:scale-[0.98]"
+            >
               <div className="absolute top-0 left-0 w-full h-1 bg-blue-500" />
               <div className="flex flex-col h-full justify-between">
                 <div className="flex items-center gap-1.5 mb-2">
-                  <DollarSign className="w-4 h-4 text-blue-500" />
-                  <h2 className="text-[9px] text-text-muted font-bold tracking-widest uppercase leading-tight">Valor<br/>Restante</h2>
+                  <Landmark className="w-4 h-4 text-blue-500" />
+                  <h2 className="text-[9px] text-text-muted font-bold tracking-widest uppercase leading-tight">Valor<br/>Inicial</h2>
                 </div>
-                <p className="text-lg font-bold text-blue-500 tracking-tight">{formatCurrency(ingresosTotales - gastosTotales)}</p>
+                <p className="text-lg font-bold text-blue-500 tracking-tight">{formatCurrency(ingresosTotales)}</p>
               </div>
             </div>
           </div>

@@ -18,6 +18,9 @@ import PresupuestosView from './components/PresupuestosView';
 import PresupuestosForm from './components/PresupuestosForm';
 import IngresosView from './components/IngresosView';
 import IngresosForm from './components/IngresosForm';
+import InfoObraView from './components/InfoObraView';
+import ArchivosCategoriaView from './components/ArchivosCategoriaView';
+import ArchivoForm from './components/ArchivoForm';
 import SplashScreen from './components/SplashScreen';
 import PWAInstallButton from './components/PWAInstallButton';
 import { Screen } from './types';
@@ -25,6 +28,7 @@ import { Screen } from './types';
 export default function App() {
   const [currentScreen, setCurrentScreen] = useState<Screen>('splash');
   const [activeObraId, setActiveObraId] = useState<number | 'general'>('general');
+  const [categoriaArchivos, setCategoriaArchivos] = useState<string>('PLANOS');
 
   const navigate = (screen: Screen) => {
     setCurrentScreen(screen);
@@ -48,6 +52,9 @@ export default function App() {
       {currentScreen === 'presupuestos_form' && <PresupuestosForm navigate={navigate} activeObraId={activeObraId} />}
       {currentScreen === 'ingresos_view' && <IngresosView navigate={navigate} activeObraId={activeObraId} />}
       {currentScreen === 'ingresos_form' && <IngresosForm navigate={navigate} activeObraId={activeObraId} />}
+      {currentScreen === 'info_obra' && <InfoObraView navigate={navigate} activeObraId={activeObraId} setCategoriaArchivos={setCategoriaArchivos} />}
+      {currentScreen === 'archivos_categoria' && <ArchivosCategoriaView navigate={navigate} activeObraId={activeObraId} categoria={categoriaArchivos} />}
+      {currentScreen === 'archivo_form' && <ArchivoForm navigate={navigate} activeObraId={activeObraId} categoria={categoriaArchivos} />}
       
       {currentScreen !== 'splash' && (
         <div className="fixed bottom-0 left-0 w-full py-1.5 bg-background border-t border-surface z-[100] text-center no-print flex items-center justify-center">
