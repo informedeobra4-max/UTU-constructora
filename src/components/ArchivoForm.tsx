@@ -24,6 +24,7 @@ export default function ArchivoForm({ navigate, activeObraId, categoria }: Archi
       case 'PLANOS': return ['Arquitectura', 'Estructuras', 'Sanitario', 'Eléctrico', 'Agrimensura', 'Otros'];
       case 'RENDERS': return ['Volumetría', 'Fachadas', 'Video', 'Interiores', 'Otros'];
       case 'PUBLICIDAD': return ['Flyers', 'Logos', 'Promociones', 'Otros'];
+      case 'REGLAMENTOS': return ['Agua', 'Gas', 'Reglamento', 'Otros'];
       default: return ['Otros'];
     }
   };
@@ -91,6 +92,7 @@ export default function ArchivoForm({ navigate, activeObraId, categoria }: Archi
     if (categoria === 'PLANOS') return 'text-blue-500 bg-blue-500 hover:bg-blue-600 focus:border-blue-500';
     if (categoria === 'RENDERS') return 'text-purple-500 bg-purple-500 hover:bg-purple-600 focus:border-purple-500';
     if (categoria === 'PUBLICIDAD') return 'text-amber-500 bg-amber-500 hover:bg-amber-600 focus:border-amber-500';
+    if (categoria === 'REGLAMENTOS') return 'text-teal-500 bg-teal-500 hover:bg-teal-600 focus:border-teal-500';
     return 'text-primary bg-primary hover:bg-primary-hover focus:border-primary';
   };
 
@@ -116,7 +118,7 @@ export default function ArchivoForm({ navigate, activeObraId, categoria }: Archi
             <ArrowLeft className="w-5 h-5" />
           </button>
         </div>
-        <h1 className="text-text-main font-semibold text-lg truncate flex-1 mx-4 text-center">Nuevo {categoria === 'PLANOS' ? 'Plano' : categoria === 'RENDERS' ? 'Render' : 'Archivo'}</h1>
+        <h1 className="text-text-main font-semibold text-lg truncate flex-1 mx-4 text-center">Nuevo {categoria === 'PLANOS' ? 'Plano' : categoria === 'RENDERS' ? 'Render' : categoria === 'REGLAMENTOS' ? 'Reglamento' : 'Archivo'}</h1>
       </header>
 
       <main className="px-4 py-6 max-w-md mx-auto">

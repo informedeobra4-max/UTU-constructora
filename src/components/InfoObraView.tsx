@@ -1,5 +1,5 @@
 import React from 'react';
-import { ArrowLeft, Map, Home, Megaphone, Paperclip } from 'lucide-react';
+import { ArrowLeft, Map, Home, Megaphone, Paperclip, BookOpen } from 'lucide-react';
 import { Screen } from '../types';
 import Logo from './Logo';
 
@@ -78,6 +78,19 @@ export default function InfoObraView({ navigate, setCategoriaArchivos, activeObr
             <div>
               <h3 className="text-lg font-black text-text-main tracking-wide uppercase">Publicidad</h3>
               <p className="text-sm text-text-muted font-medium mt-0.5">Flayers, imágenes promocionales, etc.</p>
+            </div>
+          </div>
+
+          <div 
+            onClick={() => handleCategoryClick('REGLAMENTOS')}
+            className="bg-surface rounded-2xl p-5 border border-surface-hover shadow-sm hover:border-teal-500/50 cursor-pointer transition-all hover:scale-[1.02] active:scale-[0.98] flex items-center gap-4"
+          >
+            <div className="w-14 h-14 rounded-xl bg-teal-500/10 text-teal-500 flex items-center justify-center shrink-0">
+              <BookOpen className="w-7 h-7" />
+            </div>
+            <div>
+              <h3 className="text-lg font-black text-text-main tracking-wide uppercase">Reglamento Barrio</h3>
+              <p className="text-sm text-text-muted font-medium mt-0.5">Agua, gas, reglamentos generales.</p>
             </div>
           </div>
 

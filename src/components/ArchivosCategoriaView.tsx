@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { ArrowLeft, Plus, Download, Trash2, FileText, ImageIcon, Video, File } from 'lucide-react';
+import { ArrowLeft, Plus, Download, Trash2, FileText, ImageIcon, Video, File, X } from 'lucide-react';
 import { Screen } from '../types';
 import Logo from './Logo';
 import { supabase } from '../lib/supabaseClient';
@@ -15,6 +15,7 @@ export default function ArchivosCategoriaView({ navigate, activeObraId, categori
   const [isLoading, setIsLoading] = useState(true);
   const [activeObraName, setActiveObraName] = useState('Obra General');
   const [selectedSubcat, setSelectedSubcat] = useState<string>('Todas');
+  const [previewFile, setPreviewFile] = useState<any | null>(null);
 
   useEffect(() => {
     const init = async () => {
@@ -60,6 +61,7 @@ export default function ArchivosCategoriaView({ navigate, activeObraId, categori
       case 'PLANOS': return ['Todas', 'Arquitectura', 'Estructuras', 'Sanitario', 'Eléctrico', 'Agrimensura'];
       case 'RENDERS': return ['Todas', 'Volumetría', 'Fachadas', 'Video', 'Interiores'];
       case 'PUBLICIDAD': return ['Todas', 'Flyers', 'Logos', 'Promociones'];
+      case 'REGLAMENTOS': return ['Todas', 'Agua', 'Gas', 'Reglamento'];
       default: return ['Todas'];
     }
   };
@@ -82,6 +84,7 @@ export default function ArchivosCategoriaView({ navigate, activeObraId, categori
     if (categoria === 'PLANOS') return 'text-blue-500 bg-blue-500/10 border-blue-500/30';
     if (categoria === 'RENDERS') return 'text-purple-500 bg-purple-500/10 border-purple-500/30';
     if (categoria === 'PUBLICIDAD') return 'text-amber-500 bg-amber-500/10 border-amber-500/30';
+    if (categoria === 'REGLAMENTOS') return 'text-teal-500 bg-teal-500/10 border-teal-500/30';
     return 'text-primary bg-primary/10 border-primary/30';
   };
 
@@ -135,15 +138,14 @@ export default function ArchivosCategoriaView({ navigate, activeObraId, categori
             
             <div 
               className={`w-14 h-14 rounded-xl ${bgColor} ${textColor} flex items-center justify-center shrink-0 cursor-pointer hover:scale-105 transition-transform`}
-              onClick={() => window.open(getFileUrl(archivo.id.toString()), '_blank')}
+              onClick={() => setPreviewFile(archivo)}
             >
               {getIcon(archivo.subcategoria)}
             </div>
 
-            <div className="flex-1 flex flex-col justify-center min-w-0">
+            <div className="flex-1 flex flex-col justify-center min-w-0" onClick={() => setPreviewFile(archivo)}>
               <h3 
                 className="text-text-main font-bold text-sm truncate hover:underline cursor-pointer"
-                onClick={() => window.open(getFileUrl(archivo.id.toString()), '_blank')}
               >
                 {archivo.nombre}
               </h3>
@@ -197,6 +199,65 @@ export default function ArchivosCategoriaView({ navigate, activeObraId, categori
           SUBIR ARCHIVO
         </button>
       </div>
+
+      {/* Preview Modal */}
+      {previewFile && (
+        <div className="fixed inset-0 z-[9999] bg-black/95 flex flex-col backdrop-blur-sm transition-all duration-300">
+          <div className="flex justify-between items-center p-4 text-white border-b border-white/10">
+            <div className="flex flex-col flex-1 min-w-0">
+              <h3 className="font-bold truncate pr-4 text-lg">{previewFile.nombre}</h3>
+              <p className="text-xs text-gray-400 uppercase tracking-widest">{previewFile.subcategoria}</p>
+            </div>
+            <div className="flex gap-2">
+              <button 
+                onClick={() => window.open(getFileUrl(previewFile.id.toString()), '_blank')} 
+                className="p-3 hover:bg-white/10 rounded-full transition-colors flex items-center gap-2"
+                title="Descargar"
+              >
+                <Download className="w-6 h-6" />
+              </button>
+              <button 
+                onClick={() => setPreviewFile(null)} 
+                className="p-3 hover:bg-white/10 rounded-full transition-colors"
+              >
+                <X className="w-6 h-6" />
+              </button>
+            </div>
+          </div>
+          
+          <div className="flex-1 overflow-auto flex items-center justify-center p-2 relative">
+            {previewFile.tipo === 'image' && (
+              <img 
+                src={getFileUrl(previewFile.id.toString())} 
+                alt={previewFile.nombre} 
+                className="max-w-full max-h-full object-contain rounded-lg shadow-2xl" 
+              />
+            )}
+            {previewFile.tipo === 'pdf' && (
+              <iframe 
+                src={getFileUrl(previewFile.id.toString())} 
+                className="w-full h-full bg-white rounded-lg shadow-2xl" 
+                title={previewFile.nombre}
+              />
+            )}
+            {previewFile.tipo === 'video' && (
+              <video 
+                src={getFileUrl(previewFile.id.toString())} 
+                controls 
+                autoPlay
+                className="max-w-full max-h-full rounded-lg shadow-2xl" 
+              />
+            )}
+            {!['image', 'pdf', 'video'].includes(previewFile.tipo) && (
+              <div className="text-center text-white p-8">
+                <FileText className="w-16 h-16 mx-auto mb-4 opacity-50" />
+                <p className="text-lg font-bold">Vista previa no disponible</p>
+                <p className="text-sm text-gray-400 mt-2">Por favor, descarga el archivo para verlo.</p>
+              </div>
+            )}
+          </div>
+        </div>
+      )}
     </div>
   );
 }
