@@ -13,7 +13,12 @@ interface DashboardProps {
 export default function Dashboard({ navigate, activeObraId }: DashboardProps) {
   const [obraName, setObraName] = useState('Obra General');
   const [gastosTotales, setGastosTotales] = useState(0);
-  const [ingresosTotales, setIngresosTotales] = useState(0);
+  const [ingresosARS, setIngresosARS] = useState(0);
+  const [ingresosUSD, setIngresosUSD] = useState(0);
+  const [cotizacionDolar, setCotizacionDolar] = useState<number>(() => {
+    const saved = localStorage.getItem('cotizacionDolar');
+    return saved ? parseFloat(saved) : 1000;
+  });
   const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
@@ -39,16 +44,22 @@ export default function Dashboard({ navigate, activeObraId }: DashboardProps) {
         }
       });
       
-      const { data: ingresosData } = await supabase.from('ingresos').select('monto, obra_id');
-      let tIngresos = 0;
+      const { data: ingresosData } = await supabase.from('ingresos').select('monto, moneda, obra_id');
+      let tIngresosARS = 0;
+      let tIngresosUSD = 0;
       if (ingresosData) {
         ingresosData.forEach(ing => {
           if (activeObraId === 'general' || ing.obra_id === activeObraId.toString()) {
-            tIngresos += ing.monto || 0;
+            if (ing.moneda === 'USD') {
+              tIngresosUSD += ing.monto || 0;
+            } else {
+              tIngresosARS += ing.monto || 0;
+            }
           }
         });
       }
-      setIngresosTotales(tIngresos);
+      setIngresosARS(tIngresosARS);
+      setIngresosUSD(tIngresosUSD);
 
       setGastosTotales(total);
       setIsLoading(false);
@@ -56,6 +67,12 @@ export default function Dashboard({ navigate, activeObraId }: DashboardProps) {
 
     init();
   }, [activeObraId]);
+
+  const handleCotizacionChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const val = parseFloat(e.target.value) || 0;
+    setCotizacionDolar(val);
+    localStorage.setItem('cotizacionDolar', val.toString());
+  };
 
   const formatCurrency = (amount: number) => {
     return new Intl.NumberFormat('es-AR', {
@@ -131,14 +148,31 @@ export default function Dashboard({ navigate, activeObraId }: DashboardProps) {
             <div className="absolute top-0 left-0 w-1.5 h-full bg-green-500" />
             <div className="flex justify-between items-center">
               <div>
-                <h2 className="text-[10px] text-text-muted font-black tracking-widest uppercase mb-1">Valor Restante</h2>
-                <p className="text-3xl font-extrabold text-green-500 tracking-tight">{formatCurrency(ingresosTotales - gastosTotales)}</p>
+                <h2 className="text-[10px] text-text-muted font-black tracking-widest uppercase mb-1">Balance Total (ARS + USD)</h2>
+                <p className="text-3xl font-extrabold text-green-500 tracking-tight">{formatCurrency(ingresosARS - gastosTotales + (ingresosUSD * cotizacionDolar))}</p>
               </div>
               <div className="p-3 bg-green-500/10 rounded-xl text-green-500">
-                <DollarSign className="w-6 h-6" />
+                <Wallet className="w-6 h-6" />
               </div>
             </div>
-            <div className="mt-2 text-xs text-text-muted">Balance disponible en caja</div>
+            
+            <div className="grid grid-cols-2 gap-3 mt-4">
+              <div className="bg-background-alt border border-surface-hover rounded-xl p-2 flex flex-col items-center justify-center gap-1 hover:border-blue-500 transition-colors">
+                <span className="text-[10px] font-bold text-text-main text-center leading-tight tracking-wider text-blue-500">U$S<br/>{ingresosUSD.toLocaleString('es-AR')}</span>
+              </div>
+              <div className="bg-background-alt border border-surface-hover rounded-xl p-2 flex flex-col items-center justify-center gap-1">
+                <span className="text-[9px] font-bold text-text-muted uppercase tracking-wider text-center">Valor<br/>Dólar</span>
+                <div className="flex items-center gap-1 bg-background px-1.5 py-1 rounded-lg w-full border border-surface-hover focus-within:border-primary transition-colors">
+                  <span className="text-text-muted text-[10px] font-bold">$</span>
+                  <input 
+                    type="number" 
+                    value={cotizacionDolar || ''}
+                    onChange={handleCotizacionChange}
+                    className="w-full bg-transparent text-text-main text-xs font-bold focus:outline-none text-center p-0 m-0"
+                  />
+                </div>
+              </div>
+            </div>
           </div>
 
           <div className="grid grid-cols-2 gap-3">
@@ -163,9 +197,9 @@ export default function Dashboard({ navigate, activeObraId }: DashboardProps) {
               <div className="flex flex-col h-full justify-between">
                 <div className="flex items-center gap-1.5 mb-2">
                   <Landmark className="w-4 h-4 text-blue-500" />
-                  <h2 className="text-[9px] text-text-muted font-bold tracking-widest uppercase leading-tight">Valor<br/>Inicial</h2>
+                  <h2 className="text-[9px] text-text-muted font-bold tracking-widest uppercase leading-tight">Valor<br/>Inicial (ARS)</h2>
                 </div>
-                <p className="text-lg font-bold text-blue-500 tracking-tight">{formatCurrency(ingresosTotales)}</p>
+                <p className="text-lg font-bold text-blue-500 tracking-tight">{formatCurrency(ingresosARS)}</p>
               </div>
             </div>
           </div>
