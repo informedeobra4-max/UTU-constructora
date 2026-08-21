@@ -10,7 +10,13 @@ export const sendPushNotification = async (message: string) => {
     
     const data = await response.json();
     console.log("Push sent via serverless:", data);
-  } catch (err) {
+    if (data.error) {
+      alert("Error del servidor: " + JSON.stringify(data.error));
+    } else {
+      alert("Aviso enviado a OneSignal con éxito: " + JSON.stringify(data));
+    }
+  } catch (err: any) {
     console.error("Push Notification Error:", err);
+    alert("Error de conexión: " + err.message);
   }
 };
