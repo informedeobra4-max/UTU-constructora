@@ -1,10 +1,11 @@
 import React from 'react';
-import { Bell, ArrowRight, Plus, Calendar, Trash2, Edit2, Camera } from 'lucide-react';
+import { Bell, ArrowRight, Plus, Calendar, Trash2, Edit2, Camera, X } from 'lucide-react';
 import { useState, useEffect } from 'react';
 import { Screen } from '../types';
 import Logo from './Logo';
 import { supabase } from '../lib/supabaseClient';
 import HorizontalCalendar from './HorizontalCalendar';
+import { motion, AnimatePresence } from 'motion/react';
 
 interface ObrasListProps {
   navigate: (screen: Screen) => void;
@@ -15,6 +16,7 @@ export default function ObrasList({ navigate, setActiveObraId }: ObrasListProps)
   const [obras, setObras] = useState<any[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [gastosTotales, setGastosTotales] = useState<Record<number, number>>({});
+  const [unreadAlerts, setUnreadAlerts] = useState<any[]>([]);
 
   useEffect(() => {
     const fetchObras = async () => {
@@ -25,7 +27,38 @@ export default function ObrasList({ navigate, setActiveObraId }: ObrasListProps)
       setIsLoading(false);
     };
     fetchObras();
+
+    const fetchNotifications = async () => {
+      const { data } = await supabase
+        .from('notificaciones')
+        .select('*')
+        .eq('isNew', true)
+        .order('id', { ascending: false });
+      
+      if (data) {
+        setUnreadAlerts(data);
+        if (data.length > 0 && 'setAppBadge' in navigator) {
+          (navigator as any).setAppBadge(data.length).catch(console.error);
+        } else if (data.length === 0 && 'clearAppBadge' in navigator) {
+          (navigator as any).clearAppBadge().catch(console.error);
+        }
+      }
+    };
+    fetchNotifications();
   }, []);
+
+  const dismissAlert = async (id: number) => {
+    const newAlerts = unreadAlerts.filter(a => a.id !== id);
+    setUnreadAlerts(newAlerts);
+    if ('setAppBadge' in navigator) {
+      if (newAlerts.length > 0) {
+        (navigator as any).setAppBadge(newAlerts.length).catch(console.error);
+      } else if ('clearAppBadge' in navigator) {
+        (navigator as any).clearAppBadge().catch(console.error);
+      }
+    }
+    await supabase.from('notificaciones').update({ isNew: false }).eq('id', id);
+  };
 
   useEffect(() => {
     const fetchGastos = async () => {
@@ -134,10 +167,56 @@ export default function ObrasList({ navigate, setActiveObraId }: ObrasListProps)
           </button>
           <button onClick={() => navigate('notifications')} className="relative hover:text-text-main transition-colors">
             <Bell className="w-6 h-6" />
-            <span className="absolute top-0 right-0 w-2.5 h-2.5 bg-primary rounded-full border-2 border-background"></span>
+            {unreadAlerts.length > 0 && (
+              <span className="absolute top-0 right-0 w-2.5 h-2.5 bg-green-500 rounded-full border-2 border-background animate-pulse"></span>
+            )}
           </button>
         </div>
       </header>
+
+      {/* In-App Notifications Banner */}
+      <div className="fixed top-16 left-0 w-full z-40 px-4 pointer-events-none flex flex-col gap-2">
+        <AnimatePresence>
+          {unreadAlerts.map(alert => (
+            <motion.div
+              key={alert.id}
+              initial={{ y: -50, opacity: 0 }}
+              animate={{ y: 0, opacity: 1 }}
+              exit={{ y: -20, opacity: 0, scale: 0.95 }}
+              transition={{ type: "spring", stiffness: 300, damping: 25 }}
+              className="pointer-events-auto w-full max-w-md mx-auto bg-white/90 backdrop-blur-md rounded-2xl shadow-xl border border-black/10 overflow-hidden cursor-pointer"
+              onClick={() => {
+                if ('clearAppBadge' in navigator) {
+                  (navigator as any).clearAppBadge().catch(console.error);
+                }
+                navigate('notifications');
+              }}
+            >
+              <div className="flex items-start p-4 gap-3 relative">
+                <div className="w-1 h-full absolute left-0 top-0 bg-green-500" />
+                <div className="p-2 bg-green-500/10 rounded-full text-green-500 shrink-0">
+                  <Bell className="w-4 h-4" />
+                </div>
+                <div className="flex-1 min-w-0 pr-6">
+                  <h3 className="text-xs font-bold text-black uppercase tracking-wider mb-0.5">Nuevo Mensaje • {alert.obraName}</h3>
+                  <p className="text-sm font-medium text-black/80 truncate">
+                    {alert.message}
+                  </p>
+                </div>
+                <button
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    dismissAlert(alert.id);
+                  }}
+                  className="absolute right-3 top-3 p-1 text-black/40 hover:text-black transition-colors rounded-full"
+                >
+                  <X className="w-4 h-4" />
+                </button>
+              </div>
+            </motion.div>
+          ))}
+        </AnimatePresence>
+      </div>
 
       <main className="px-4 py-8 max-w-md mx-auto space-y-6 relative min-h-[500px]">
         {isLoading && (

@@ -1,10 +1,9 @@
-import { ArrowLeft, Bell, Wallet, FileSpreadsheet, DollarSign, TrendingDown, Landmark, Paperclip, X } from 'lucide-react';
+import { ArrowLeft, Bell, Wallet, FileSpreadsheet, DollarSign, TrendingDown, Landmark, Paperclip } from 'lucide-react';
 import { useState, useEffect } from 'react';
 import { Screen } from '../types';
 import Logo from './Logo';
 import { supabase } from '../lib/supabaseClient';
 import HorizontalCalendar from './HorizontalCalendar';
-import { motion, AnimatePresence } from 'motion/react';
 
 interface DashboardProps {
   navigate: (screen: Screen) => void;
@@ -16,7 +15,6 @@ export default function Dashboard({ navigate, activeObraId }: DashboardProps) {
   const [gastosTotales, setGastosTotales] = useState(0);
   const [ingresosTotales, setIngresosTotales] = useState(0);
   const [isLoading, setIsLoading] = useState(true);
-  const [unreadAlerts, setUnreadAlerts] = useState<any[]>([]);
 
   useEffect(() => {
     const init = async () => {
@@ -54,33 +52,10 @@ export default function Dashboard({ navigate, activeObraId }: DashboardProps) {
 
       setGastosTotales(total);
       setIsLoading(false);
-
-      // Fetch unread notifications
-      const { data: notifData } = await supabase
-        .from('notificaciones')
-        .select('*')
-        .eq('isNew', true)
-        .order('id', { ascending: false });
-
-      if (notifData) {
-        // Filter by active obra
-        const filteredNotifs = notifData.filter(n => {
-          if (activeObraId === 'general') return true;
-          return n.obraId === 'general' || n.obraId === activeObraId.toString();
-        });
-        setUnreadAlerts(filteredNotifs);
-      }
     };
 
     init();
   }, [activeObraId]);
-
-  const dismissAlert = async (id: number) => {
-    // Remove from UI immediately
-    setUnreadAlerts(prev => prev.filter(a => a.id !== id));
-    // Update DB
-    await supabase.from('notificaciones').update({ isNew: false }).eq('id', id);
-  };
 
   const formatCurrency = (amount: number) => {
     return new Intl.NumberFormat('es-AR', {
@@ -122,45 +97,6 @@ export default function Dashboard({ navigate, activeObraId }: DashboardProps) {
           </button>
         </div>
       </header>
-
-      {/* In-App Notifications Banner */}
-      <div className="fixed top-16 left-0 w-full z-40 px-4 pointer-events-none flex flex-col gap-2">
-        <AnimatePresence>
-          {unreadAlerts.map(alert => (
-            <motion.div
-              key={alert.id}
-              initial={{ y: -50, opacity: 0 }}
-              animate={{ y: 0, opacity: 1 }}
-              exit={{ y: -20, opacity: 0, scale: 0.95 }}
-              transition={{ type: "spring", stiffness: 300, damping: 25 }}
-              className="pointer-events-auto w-full max-w-md mx-auto bg-white/90 backdrop-blur-md rounded-2xl shadow-xl border border-black/10 overflow-hidden cursor-pointer"
-              onClick={() => navigate('notifications')}
-            >
-              <div className="flex items-start p-4 gap-3 relative">
-                <div className="w-1 h-full absolute left-0 top-0 bg-primary" />
-                <div className="p-2 bg-primary/10 rounded-full text-primary shrink-0">
-                  <Bell className="w-4 h-4" />
-                </div>
-                <div className="flex-1 min-w-0 pr-6">
-                  <h3 className="text-xs font-bold text-black uppercase tracking-wider mb-0.5">Nuevo Mensaje • {alert.obraName}</h3>
-                  <p className="text-sm font-medium text-black/80 truncate">
-                    {alert.message}
-                  </p>
-                </div>
-                <button
-                  onClick={(e) => {
-                    e.stopPropagation();
-                    dismissAlert(alert.id);
-                  }}
-                  className="absolute right-3 top-3 p-1 text-black/40 hover:text-black transition-colors rounded-full"
-                >
-                  <X className="w-4 h-4" />
-                </button>
-              </div>
-            </motion.div>
-          ))}
-        </AnimatePresence>
-      </div>
 
       <main className="px-4 py-6 space-y-6 max-w-md mx-auto relative min-h-[500px]">
         {isLoading && (
