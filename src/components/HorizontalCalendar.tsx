@@ -109,7 +109,7 @@ export default function HorizontalCalendar({
   };
 
   return (
-    <div className="bg-surface rounded-2xl p-2 border border-surface-hover w-full">
+    <div className="w-full relative py-2">
       {showTitle && (
         <div className="flex items-center justify-between mb-2 px-2">
           <h2 className="text-text-main font-bold capitalize">
@@ -118,16 +118,21 @@ export default function HorizontalCalendar({
         </div>
       )}
       
-      <div className="flex items-center relative">
-        <div className="relative flex-1 flex items-center overflow-hidden">
+      {/* Fondo fino (más bajo que la lupa) */}
+      <div className="absolute top-1/2 left-0 w-full h-[50px] -translate-y-1/2 bg-surface border border-surface-hover rounded-2xl pointer-events-none z-0"></div>
+
+      <div className="flex items-center relative z-10">
+        <div className="relative flex-1 flex items-center">
           {/* Lupa Redonda Nítida */}
-          <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[68px] h-[68px] rounded-full border-[3px] border-white/20 bg-white/5 pointer-events-none z-20 shadow-[0_4px_25px_rgba(255,107,0,0.15),inset_0_4px_10px_rgba(255,255,255,0.2)]"></div>
+          <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[68px] h-[68px] rounded-full border-[3px] border-white/20 bg-background pointer-events-none z-20 shadow-[0_4px_25px_rgba(255,107,0,0.15),inset_0_4px_10px_rgba(255,255,255,0.2)] flex items-center justify-center">
+            <div className="w-full h-full rounded-full bg-white/5"></div>
+          </div>
 
           <div 
             ref={scrollRef}
             onScroll={handleScroll}
             onTouchStart={() => initAudio()}
-            className="flex flex-1 items-center overflow-x-auto hide-scrollbar snap-x snap-mandatory px-[calc(50%-28px)] gap-2 py-2"
+            className="flex flex-1 items-center overflow-x-auto overflow-y-visible hide-scrollbar snap-x snap-mandatory px-[calc(50%-34px)] gap-2 py-4 relative z-30"
             style={{ scrollBehavior: 'smooth' }}
           >
           {days.map((day, idx) => {

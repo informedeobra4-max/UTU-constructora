@@ -67,7 +67,8 @@ export default function App() {
       {currentScreen === 'presupuestos_view' && <PresupuestosView navigate={navigate} activeObraId={activeObraId} />}
       {currentScreen === 'presupuestos_form' && <PresupuestosForm navigate={navigate} activeObraId={activeObraId} />}
       {currentScreen === 'ingresos_view' && <IngresosView navigate={navigate} activeObraId={activeObraId} />}
-      {currentScreen === 'ingresos_form' && <IngresosForm navigate={navigate} activeObraId={activeObraId} />}
+      {currentScreen === 'ingresos_form' && <IngresosForm navigate={navigate} activeObraId={activeObraId} defaultCurrency="ARS" />}
+      {currentScreen === 'ingresos_form_usd' && <IngresosForm navigate={navigate} activeObraId={activeObraId} defaultCurrency="USD" />}
       {currentScreen === 'info_obra' && <InfoObraView navigate={navigate} activeObraId={activeObraId} setCategoriaArchivos={setCategoriaArchivos} />}
       {currentScreen === 'archivos_categoria' && <ArchivosCategoriaView navigate={navigate} activeObraId={activeObraId} categoria={categoriaArchivos} />}
       {currentScreen === 'archivo_form' && <ArchivoForm navigate={navigate} activeObraId={activeObraId} categoria={categoriaArchivos} />}

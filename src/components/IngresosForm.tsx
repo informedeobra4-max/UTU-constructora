@@ -8,9 +8,11 @@ import { supabase } from '../lib/supabaseClient';
 interface IngresosFormProps {
   navigate: (screen: Screen) => void;
   activeObraId: number | 'general';
+  defaultCurrency?: 'ARS' | 'USD';
 }
 
-export default function IngresosForm({ navigate, activeObraId }: IngresosFormProps) {
+export default function IngresosForm({ navigate, activeObraId, defaultCurrency = 'ARS' }: IngresosFormProps) {
+  const [moneda, setMoneda] = useState<'ARS'|'USD'>(defaultCurrency);
   const [monto, setMonto] = useState('');
   const [concepto, setConcepto] = useState('');
   const [encargado, setEncargado] = useState('');
@@ -42,7 +44,8 @@ export default function IngresosForm({ navigate, activeObraId }: IngresosFormPro
         obra_id: selectedObra.toString(),
         monto: parseFloat(monto) || 0,
         concepto: concepto,
-        encargado: encargado
+        encargado: encargado,
+        moneda: moneda
       }
     ]);
 
@@ -107,15 +110,39 @@ export default function IngresosForm({ navigate, activeObraId }: IngresosFormPro
             </div>
           )}
 
-          <div className="space-y-1.5">
-            <label className="text-xs font-bold tracking-wider text-text-muted uppercase">Monto a Depositar</label>
+          <div className="space-y-1.5 flex flex-col">
+            <div className="flex justify-between items-center mb-1">
+              <label className="text-xs font-bold tracking-wider text-text-muted uppercase">Monto a Depositar</label>
+              
+              <div className="flex bg-surface rounded-lg p-1 border border-surface-hover">
+                <button
+                  type="button"
+                  onClick={() => setMoneda('ARS')}
+                  className={`px-3 py-1 rounded-md text-xs font-bold transition-all ${
+                    moneda === 'ARS' ? 'bg-green-500 text-white shadow-sm' : 'text-text-muted hover:text-text-main'
+                  }`}
+                >
+                  ARS ($)
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setMoneda('USD')}
+                  className={`px-3 py-1 rounded-md text-xs font-bold transition-all ${
+                    moneda === 'USD' ? 'bg-green-500 text-white shadow-sm' : 'text-text-muted hover:text-text-main'
+                  }`}
+                >
+                  USD (U$S)
+                </button>
+              </div>
+            </div>
+            
             <div className="relative">
-              <span className="absolute left-4 top-1/2 -translate-y-1/2 text-text-muted font-bold">$</span>
+              <span className="absolute left-4 top-1/2 -translate-y-1/2 text-text-muted font-bold">{moneda === 'ARS' ? '$' : 'U$S'}</span>
               <input 
                 type="number" 
                 value={monto}
                 onChange={(e) => setMonto(e.target.value)}
-                className="w-full bg-background-alt border border-surface-hover rounded-xl pl-8 pr-4 py-3.5 text-green-500 font-bold text-lg focus:outline-none focus:border-green-500 transition-colors"
+                className="w-full bg-background-alt border border-surface-hover rounded-xl pl-12 pr-4 py-3.5 text-green-500 font-bold text-lg focus:outline-none focus:border-green-500 transition-colors"
                 placeholder="0.00"
               />
             </div>

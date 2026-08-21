@@ -1,5 +1,5 @@
 import React from 'react';
-import { Bell, ArrowRight, Plus, Calendar, Trash2, Edit2, Camera, X } from 'lucide-react';
+import { Bell, ArrowRight, Plus, Calendar, Trash2, Edit2, Camera, X, DollarSign } from 'lucide-react';
 import { useState, useEffect } from 'react';
 import { Screen } from '../types';
 import Logo from './Logo';
@@ -15,9 +15,19 @@ interface ObrasListProps {
 export default function ObrasList({ navigate, setActiveObraId }: ObrasListProps) {
   const [obras, setObras] = useState<any[]>([]);
   const [isLoading, setIsLoading] = useState(true);
+  
   const [gastosTotales, setGastosTotales] = useState<Record<number, number>>({});
   const [unreadAlerts, setUnreadAlerts] = useState<any[]>([]);
   const [showToasts, setShowToasts] = useState(true);
+
+  // Global Wallet States
+  const [globalIngresosARS, setGlobalIngresosARS] = useState(0);
+  const [globalIngresosUSD, setGlobalIngresosUSD] = useState(0);
+  const [globalGastosARS, setGlobalGastosARS] = useState(0);
+  const [cotizacionDolar, setCotizacionDolar] = useState<number>(() => {
+    const saved = localStorage.getItem('cotizacionDolar');
+    return saved ? parseFloat(saved) : 1000;
+  });
 
   useEffect(() => {
     const fetchObras = async () => {
@@ -41,7 +51,6 @@ export default function ObrasList({ navigate, setActiveObraId }: ObrasListProps)
         if (data.length > 0) {
           if ('setAppBadge' in navigator) (navigator as any).setAppBadge(data.length).catch(console.error);
           
-          // Auto-hide toast after 4.5 seconds
           setTimeout(() => {
             setShowToasts(false);
           }, 4500);
@@ -53,6 +62,59 @@ export default function ObrasList({ navigate, setActiveObraId }: ObrasListProps)
     };
     fetchNotifications();
   }, []);
+
+  useEffect(() => {
+    const fetchFinances = async () => {
+      // 1. Fetch Gastos
+      const { data: gastos, error: errGastos } = await supabase.from('gastos').select('amount, subtitle');
+      if (errGastos) console.error('Error fetching gastos:', errGastos);
+      
+      const totalsPorObra: Record<number, number> = {};
+      let totalGastosARS = 0;
+      obras.forEach(obra => totalsPorObra[obra.id] = 0);
+
+      gastos?.forEach(gasto => {
+        const amt = gasto.amount || 0;
+        totalGastosARS += amt;
+
+        const obraName = gasto.subtitle?.split(' • ')[0];
+        const obraMatch = obras.find(o => o.name === obraName);
+        if (obraMatch) {
+          totalsPorObra[obraMatch.id] = (totalsPorObra[obraMatch.id] || 0) + amt;
+        }
+      });
+      setGastosTotales(totalsPorObra);
+      setGlobalGastosARS(totalGastosARS);
+
+      // 2. Fetch Ingresos
+      const { data: ingresos, error: errIngresos } = await supabase.from('ingresos').select('monto, moneda');
+      if (errIngresos) console.error('Error fetching ingresos:', errIngresos);
+
+      let totalInARS = 0;
+      let totalInUSD = 0;
+
+      ingresos?.forEach(ing => {
+        if (ing.moneda === 'USD') {
+          totalInUSD += (ing.monto || 0);
+        } else {
+          totalInARS += (ing.monto || 0);
+        }
+      });
+
+      setGlobalIngresosARS(totalInARS);
+      setGlobalIngresosUSD(totalInUSD);
+    };
+
+    if (obras.length > 0) {
+      fetchFinances();
+    }
+  }, [obras]);
+
+  const handleCotizacionChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const val = parseFloat(e.target.value) || 0;
+    setCotizacionDolar(val);
+    localStorage.setItem('cotizacionDolar', val.toString());
+  };
 
   const dismissAlert = async (id: number) => {
     const newAlerts = unreadAlerts.filter(a => a.id !== id);
@@ -66,29 +128,6 @@ export default function ObrasList({ navigate, setActiveObraId }: ObrasListProps)
     }
     await supabase.from('notificaciones').update({ isNew: false }).eq('id', id);
   };
-
-  useEffect(() => {
-    const fetchGastos = async () => {
-      const { data, error } = await supabase.from('gastos').select('amount, subtitle');
-      if (error) {
-        console.error('Error fetching gastos:', error);
-        return;
-      }
-      
-      const totals: Record<number, number> = {};
-      obras.forEach(obra => totals[obra.id] = 0);
-
-      data?.forEach(gasto => {
-        const obraName = gasto.subtitle?.split(' • ')[0];
-        const obraMatch = obras.find(o => o.name === obraName);
-        if (obraMatch) {
-          totals[obraMatch.id] = (totals[obraMatch.id] || 0) + (gasto.amount || 0);
-        }
-      });
-      setGastosTotales(totals);
-    };
-    fetchGastos();
-  }, [obras]);
 
   const [editingId, setEditingId] = useState<number | null>(null);
   const [editName, setEditName] = useState('');
@@ -159,6 +198,8 @@ export default function ObrasList({ navigate, setActiveObraId }: ObrasListProps)
       maximumFractionDigits: 0
     }).format(amount);
   };
+
+  const totalGlobalWalletARS = globalIngresosARS - globalGastosARS + (globalIngresosUSD * cotizacionDolar);
 
   return (
     <div className="min-h-screen bg-background pb-20">
@@ -247,6 +288,43 @@ export default function ObrasList({ navigate, setActiveObraId }: ObrasListProps)
             showTitle={false} 
             onDateSelect={() => { setActiveObraId('general'); navigate('calendar'); }}
           />
+        </div>
+
+        {/* Global Wallet UI */}
+        <div className="bg-surface rounded-3xl p-6 shadow-sm border border-surface-hover mt-8">
+          <div className="flex justify-between items-start mb-2">
+            <div>
+              <p className="text-xs text-text-muted font-bold tracking-widest uppercase mb-1">Balance Total Global</p>
+              <div className="flex items-center gap-2">
+                <h1 className="text-4xl font-black text-green-500 tracking-tighter">
+                  {formatCurrency(totalGlobalWalletARS)}
+                </h1>
+              </div>
+            </div>
+          </div>
+
+          <div className="grid grid-cols-3 gap-3 mt-6">
+            <button onClick={() => navigate('ingresos_form')} className="bg-background-alt border border-surface-hover rounded-2xl p-3 flex flex-col items-center justify-center gap-2 hover:border-primary transition-colors">
+              <div className="p-2 bg-green-500/10 text-green-500 rounded-xl"><Plus className="w-5 h-5"/></div>
+              <span className="text-xs font-bold text-text-main">Ingresar</span>
+            </button>
+            <button onClick={() => navigate('ingresos_form_usd')} className="bg-background-alt border border-surface-hover rounded-2xl p-3 flex flex-col items-center justify-center gap-2 hover:border-blue-500 transition-colors">
+              <div className="p-2 bg-blue-500/10 text-blue-500 rounded-xl"><DollarSign className="w-5 h-5"/></div>
+              <span className="text-[10px] font-bold text-text-main text-center leading-tight tracking-wider">U$S<br/>{globalIngresosUSD.toLocaleString('es-AR')}</span>
+            </button>
+            <div className="bg-background-alt border border-surface-hover rounded-2xl p-2 flex flex-col items-center justify-center gap-1.5">
+              <span className="text-[9px] font-bold text-text-muted uppercase tracking-wider text-center">Valor<br/>Dólar</span>
+              <div className="flex items-center gap-1 bg-background px-1.5 py-1.5 rounded-lg w-full border border-surface-hover focus-within:border-primary transition-colors">
+                <span className="text-text-muted text-[10px] font-bold">$</span>
+                <input 
+                  type="number" 
+                  value={cotizacionDolar || ''}
+                  onChange={handleCotizacionChange}
+                  className="w-full bg-transparent text-text-main text-xs font-bold focus:outline-none text-center p-0 m-0"
+                />
+              </div>
+            </div>
+          </div>
         </div>
 
         <div className="space-y-4 mt-8">

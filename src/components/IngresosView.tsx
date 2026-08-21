@@ -50,13 +50,13 @@ export default function IngresosView({ navigate, activeObraId }: IngresosViewPro
     }
   };
 
-  const formatCurrency = (amount: number) => {
+  const formatCurrency = (amount: number, moneda: string = 'ARS') => {
     return new Intl.NumberFormat('es-AR', {
       style: 'currency',
-      currency: 'ARS',
+      currency: moneda === 'USD' ? 'USD' : 'ARS',
       minimumFractionDigits: 0,
       maximumFractionDigits: 0
-    }).format(amount);
+    }).format(amount) + (moneda === 'USD' ? ' USD' : '');
   };
 
   return (
@@ -90,11 +90,11 @@ export default function IngresosView({ navigate, activeObraId }: IngresosViewPro
               
               <div className="flex justify-between items-start">
                 <div className="flex items-center gap-2">
-                  <div className="p-2 bg-green-500/10 rounded-lg text-green-500">
+                  <div className={`p-2 rounded-lg ${ingreso.moneda === 'USD' ? 'bg-blue-500/10 text-blue-500' : 'bg-green-500/10 text-green-500'}`}>
                     <DollarSign className="w-5 h-5" />
                   </div>
                   <div>
-                    <h3 className="text-text-main font-bold text-lg leading-tight">{formatCurrency(ingreso.monto)}</h3>
+                    <h3 className="text-text-main font-bold text-lg leading-tight">{formatCurrency(ingreso.monto, ingreso.moneda)}</h3>
                     <span className="text-[10px] uppercase font-bold tracking-wider text-text-muted">
                       {new Date(ingreso.created_at).toLocaleDateString('es-AR')}
                     </span>
