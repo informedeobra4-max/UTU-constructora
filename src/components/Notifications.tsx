@@ -164,11 +164,33 @@ export default function Notifications({ navigate }: NotificationsProps) {
           </div>
           
           <button 
-            onClick={() => {
-              if (OneSignal.Slidedown) {
-                OneSignal.Slidedown.promptPush();
-              } else {
-                alert("Las notificaciones aún se están cargando o no son compatibles con este dispositivo.");
+            onClick={async () => {
+              try {
+                if (!window.Notification) {
+                  alert("Tu dispositivo no soporta notificaciones web (probablemente sea un iPhone desactualizado).");
+                  return;
+                }
+                if (Notification.permission === 'granted') {
+                  alert("¡Las notificaciones ya están activadas en este dispositivo! Si no te llegan, puede que debas reinstalar la app en tu inicio.");
+                  return;
+                }
+                if (Notification.permission === 'denied') {
+                  alert("Las notificaciones fueron bloqueadas. Debes ir a la Configuración de tu celular > Aplicaciones > UTU > Permitir Notificaciones.");
+                  return;
+                }
+                
+                // Pedir permiso nativo
+                const perm = await Notification.requestPermission();
+                if (perm === 'granted') {
+                  if (OneSignal && OneSignal.Slidedown) {
+                    OneSignal.Slidedown.promptPush();
+                  }
+                  alert("¡Permiso concedido! Ahora recibirás las alertas.");
+                } else {
+                  alert("No se concedió el permiso.");
+                }
+              } catch (e: any) {
+                alert("Error al activar: " + e.message);
               }
             }}
             className="w-full flex items-center justify-center gap-2 px-4 py-3 text-sm font-bold text-white bg-blue-500 rounded-xl hover:bg-blue-600 transition-colors shadow-sm"
