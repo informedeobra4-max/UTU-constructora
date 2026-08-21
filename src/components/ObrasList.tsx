@@ -17,6 +17,7 @@ export default function ObrasList({ navigate, setActiveObraId }: ObrasListProps)
   const [isLoading, setIsLoading] = useState(true);
   const [gastosTotales, setGastosTotales] = useState<Record<number, number>>({});
   const [unreadAlerts, setUnreadAlerts] = useState<any[]>([]);
+  const [showToasts, setShowToasts] = useState(true);
 
   useEffect(() => {
     const fetchObras = async () => {
@@ -37,8 +38,14 @@ export default function ObrasList({ navigate, setActiveObraId }: ObrasListProps)
       
       if (data) {
         setUnreadAlerts(data);
-        if (data.length > 0 && 'setAppBadge' in navigator) {
-          (navigator as any).setAppBadge(data.length).catch(console.error);
+        if (data.length > 0) {
+          if ('setAppBadge' in navigator) (navigator as any).setAppBadge(data.length).catch(console.error);
+          
+          // Auto-hide toast after 4.5 seconds
+          setTimeout(() => {
+            setShowToasts(false);
+          }, 4500);
+          
         } else if (data.length === 0 && 'clearAppBadge' in navigator) {
           (navigator as any).clearAppBadge().catch(console.error);
         }
@@ -177,7 +184,7 @@ export default function ObrasList({ navigate, setActiveObraId }: ObrasListProps)
       {/* In-App Notifications Banner */}
       <div className="fixed top-16 left-0 w-full z-40 px-4 pointer-events-none flex flex-col gap-2">
         <AnimatePresence>
-          {unreadAlerts.map(alert => (
+          {showToasts && unreadAlerts.map(alert => (
             <motion.div
               key={alert.id}
               initial={{ y: -50, opacity: 0 }}
