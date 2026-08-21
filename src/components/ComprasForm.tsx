@@ -22,6 +22,7 @@ export default function ComprasForm({ navigate, activeObraId }: ComprasFormProps
   const [amount, setAmount] = useState('');
   const [provider, setProvider] = useState('');
   const [encargado, setEncargado] = useState('');
+  const [moneda, setMoneda] = useState<'ARS'|'USD'>('ARS');
   const [isSubmitting, setIsSubmitting] = useState(false);
   
   const [obras, setObras] = useState<Obra[]>([]);
@@ -72,7 +73,8 @@ export default function ComprasForm({ navigate, activeObraId }: ComprasFormProps
         subtitle: `${obraName} • ${provider || 'S/N'}`,
         amount: parseFloat(amount) || 0,
         status: 'Pendiente',
-        encargado: encargado
+        encargado: encargado,
+        moneda: moneda
       }
     ]).select();
 
@@ -189,17 +191,38 @@ export default function ComprasForm({ navigate, activeObraId }: ComprasFormProps
         </div>
 
         {/* Valor */}
-        <div className="space-y-1.5">
-          <label className="text-xs font-bold tracking-wider text-text-muted uppercase">Valor / Precio Total</label>
-          <div className="relative">
-            <span className="absolute left-4 top-1/2 -translate-y-1/2 text-text-muted">$</span>
-            <input
-              type="number"
-              value={amount}
-              onChange={(e) => setAmount(e.target.value)}
-              placeholder="0.00"
-              className="w-full bg-surface border border-surface-hover rounded-xl pl-8 pr-4 py-3.5 text-text-main placeholder-text-muted/50 focus:outline-none focus:border-primary focus:ring-1 focus:ring-primary transition-colors"
-            />
+        <div className="space-y-3">
+          <div className="space-y-1.5">
+            <label className="text-xs font-bold tracking-wider text-text-muted uppercase">Valor / Precio Total</label>
+            <div className="relative">
+              <span className="absolute left-4 top-1/2 -translate-y-1/2 text-text-muted font-bold">{moneda === 'ARS' ? '$' : 'U$S'}</span>
+              <input
+                type="number"
+                value={amount}
+                onChange={(e) => setAmount(e.target.value)}
+                placeholder="0.00"
+                className="w-full bg-surface border border-surface-hover rounded-xl pl-11 pr-4 py-3.5 text-text-main placeholder-text-muted/50 focus:outline-none focus:border-primary focus:ring-1 focus:ring-primary transition-colors"
+              />
+            </div>
+          </div>
+          
+          <div className="grid grid-cols-2 gap-2 bg-surface p-1 rounded-xl border border-surface-hover">
+            <button
+              onClick={() => setMoneda('ARS')}
+              className={`py-2 rounded-lg text-sm font-bold transition-all ${
+                moneda === 'ARS' ? 'bg-green-500 text-white shadow-sm' : 'text-text-muted hover:text-text-main'
+              }`}
+            >
+              Pesos (ARS)
+            </button>
+            <button
+              onClick={() => setMoneda('USD')}
+              className={`py-2 rounded-lg text-sm font-bold transition-all ${
+                moneda === 'USD' ? 'bg-green-500 text-white shadow-sm' : 'text-text-muted hover:text-text-main'
+              }`}
+            >
+              USD (U$S)
+            </button>
           </div>
         </div>
 

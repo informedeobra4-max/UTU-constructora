@@ -33,35 +33,22 @@ export default function Dashboard({ navigate, activeObraId }: DashboardProps) {
       }
       setObraName(currentName);
 
-      const { data, error } = await supabase.from('gastos').select('amount, subtitle, type');
+      const { data, error } = await supabase.from('gastos').select('amount, subtitle, type, moneda');
       if (error || !data) return;
 
-      let total = 0;
+      let totalGastosARS = 0;
       data.forEach(gasto => {
         const gastoObraName = gasto.subtitle?.split(' • ')[0];
         if (gastoObraName === currentName || (activeObraId === 'general' && gastoObraName === 'General')) {
-          total += gasto.amount || 0;
+          if (gasto.moneda === 'USD') {
+            totalGastosARS += (gasto.amount || 0) * (parseFloat(localStorage.getItem('cotizacionDolar') || '1000'));
+          } else {
+            totalGastosARS += gasto.amount || 0;
+          }
         }
       });
       
-      const { data: ingresosData } = await supabase.from('ingresos').select('monto, moneda, obra_id');
-      let tIngresosARS = 0;
-      let tIngresosUSD = 0;
-      if (ingresosData) {
-        ingresosData.forEach(ing => {
-          if (activeObraId === 'general' || ing.obra_id === activeObraId.toString()) {
-            if (ing.moneda === 'USD') {
-              tIngresosUSD += ing.monto || 0;
-            } else {
-              tIngresosARS += ing.monto || 0;
-            }
-          }
-        });
-      }
-      setIngresosARS(tIngresosARS);
-      setIngresosUSD(tIngresosUSD);
-
-      setGastosTotales(total);
+      setGastosTotales(totalGastosARS);
       setIsLoading(false);
     };
 
@@ -133,70 +120,19 @@ export default function Dashboard({ navigate, activeObraId }: DashboardProps) {
           />
         </div>
 
-        {/* Hero Card - Módulo Financiero */}
+        {/* Hero Card - Módulo Financiero (Solo Gastos) */}
         <div className="space-y-3">
           
-          {/* Valor Restante (Grande y Verde) */}
           <div 
-            className="bg-surface rounded-2xl p-5 border border-green-500/30 shadow-[0_5px_20px_rgba(34,197,94,0.15)] relative overflow-hidden"
+            className="bg-surface rounded-2xl p-6 border border-red-500/30 shadow-[0_5px_20px_rgba(239,68,68,0.15)] relative overflow-hidden flex flex-col items-center justify-center text-center"
           >
-            <div className="absolute top-0 left-0 w-1.5 h-full bg-green-500" />
-            <div className="flex justify-between items-center">
-              <div>
-                <h2 className="text-[10px] text-text-muted font-black tracking-widest uppercase mb-1">Balance Total (ARS + USD)</h2>
-                <p className="text-3xl font-extrabold text-green-500 tracking-tight">{formatCurrency(ingresosARS - gastosTotales + (ingresosUSD * cotizacionDolar))}</p>
-              </div>
-              <div className="p-3 bg-green-500/10 rounded-xl text-green-500">
-                <Wallet className="w-6 h-6" />
-              </div>
+            <div className="absolute top-0 left-0 w-full h-1.5 bg-red-500" />
+            <div className="p-3 bg-red-500/10 rounded-full text-red-500 mb-3">
+              <TrendingDown className="w-8 h-8" />
             </div>
-            
-            <div className="grid grid-cols-2 gap-3 mt-4">
-              <div className="bg-background-alt border border-surface-hover rounded-xl p-2 flex flex-col items-center justify-center gap-1 hover:border-blue-500 transition-colors">
-                <span className="text-[10px] font-bold text-text-main text-center leading-tight tracking-wider text-blue-500">U$S<br/>{ingresosUSD.toLocaleString('es-AR')}</span>
-              </div>
-              <div className="bg-background-alt border border-surface-hover rounded-xl p-2 flex flex-col items-center justify-center gap-1">
-                <span className="text-[9px] font-bold text-text-muted uppercase tracking-wider text-center">Valor<br/>Dólar</span>
-                <div className="flex items-center gap-1 bg-background px-1.5 py-1 rounded-lg w-full border border-surface-hover focus-within:border-primary transition-colors">
-                  <span className="text-text-muted text-[10px] font-bold">$</span>
-                  <input 
-                    type="number" 
-                    value={cotizacionDolar || ''}
-                    onChange={handleCotizacionChange}
-                    className="w-full bg-transparent text-text-main text-xs font-bold focus:outline-none text-center p-0 m-0"
-                  />
-                </div>
-              </div>
-            </div>
-          </div>
-
-          <div className="grid grid-cols-2 gap-3">
-            {/* Gasto Total Acumulado (Rojo) */}
-            <div className="bg-surface rounded-2xl p-4 border border-red-500/20 relative overflow-hidden">
-              <div className="absolute top-0 left-0 w-full h-1 bg-red-500" />
-              <div className="flex flex-col h-full justify-between">
-                <div className="flex items-center gap-1.5 mb-2">
-                  <TrendingDown className="w-4 h-4 text-red-500" />
-                  <h2 className="text-[9px] text-text-muted font-bold tracking-widest uppercase leading-tight">Total<br/>Gastado</h2>
-                </div>
-                <p className="text-lg font-bold text-red-500 tracking-tight">{formatCurrency(gastosTotales)}</p>
-              </div>
-            </div>
-
-            {/* Valor Inicial (Azul y Clickeable) */}
-            <div 
-              onClick={() => navigate('ingresos_view')}
-              className="bg-surface rounded-2xl p-4 border border-blue-500/20 relative overflow-hidden cursor-pointer transition-transform active:scale-[0.98]"
-            >
-              <div className="absolute top-0 left-0 w-full h-1 bg-blue-500" />
-              <div className="flex flex-col h-full justify-between">
-                <div className="flex items-center gap-1.5 mb-2">
-                  <Landmark className="w-4 h-4 text-blue-500" />
-                  <h2 className="text-[9px] text-text-muted font-bold tracking-widest uppercase leading-tight">Valor<br/>Inicial (ARS)</h2>
-                </div>
-                <p className="text-lg font-bold text-blue-500 tracking-tight">{formatCurrency(ingresosARS)}</p>
-              </div>
-            </div>
+            <h2 className="text-xs text-text-muted font-black tracking-widest uppercase mb-2">Total Gastado en esta Obra (ARS)</h2>
+            <p className="text-4xl font-extrabold text-red-500 tracking-tight">{formatCurrency(gastosTotales)}</p>
+            <p className="text-[10px] text-text-muted mt-2 font-medium">Incluye gastos en USD convertidos a la cotización actual</p>
           </div>
         </div>
 

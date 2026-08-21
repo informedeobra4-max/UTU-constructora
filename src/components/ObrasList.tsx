@@ -24,6 +24,7 @@ export default function ObrasList({ navigate, setActiveObraId }: ObrasListProps)
   const [globalIngresosARS, setGlobalIngresosARS] = useState(0);
   const [globalIngresosUSD, setGlobalIngresosUSD] = useState(0);
   const [globalGastosARS, setGlobalGastosARS] = useState(0);
+  const [globalGastosUSD, setGlobalGastosUSD] = useState(0);
   const [cotizacionDolar, setCotizacionDolar] = useState<number>(() => {
     const saved = localStorage.getItem('cotizacionDolar');
     return saved ? parseFloat(saved) : 1000;
@@ -66,25 +67,35 @@ export default function ObrasList({ navigate, setActiveObraId }: ObrasListProps)
   useEffect(() => {
     const fetchFinances = async () => {
       // 1. Fetch Gastos
-      const { data: gastos, error: errGastos } = await supabase.from('gastos').select('amount, subtitle');
+      const { data: gastos, error: errGastos } = await supabase.from('gastos').select('amount, subtitle, moneda');
       if (errGastos) console.error('Error fetching gastos:', errGastos);
       
       const totalsPorObra: Record<number, number> = {};
       let totalGastosARS = 0;
+      let totalGastosUSD = 0;
       obras.forEach(obra => totalsPorObra[obra.id] = 0);
+
+      const currentDolar = parseFloat(localStorage.getItem('cotizacionDolar') || '1000');
 
       gastos?.forEach(gasto => {
         const amt = gasto.amount || 0;
-        totalGastosARS += amt;
+        
+        if (gasto.moneda === 'USD') {
+          totalGastosUSD += amt;
+        } else {
+          totalGastosARS += amt;
+        }
 
         const obraName = gasto.subtitle?.split(' • ')[0];
         const obraMatch = obras.find(o => o.name === obraName);
         if (obraMatch) {
-          totalsPorObra[obraMatch.id] = (totalsPorObra[obraMatch.id] || 0) + amt;
+          const amtInARS = gasto.moneda === 'USD' ? amt * currentDolar : amt;
+          totalsPorObra[obraMatch.id] = (totalsPorObra[obraMatch.id] || 0) + amtInARS;
         }
       });
       setGastosTotales(totalsPorObra);
       setGlobalGastosARS(totalGastosARS);
+      setGlobalGastosUSD(totalGastosUSD);
 
       // 2. Fetch Ingresos
       const { data: ingresos, error: errIngresos } = await supabase.from('ingresos').select('monto, moneda');
@@ -199,7 +210,7 @@ export default function ObrasList({ navigate, setActiveObraId }: ObrasListProps)
     }).format(amount);
   };
 
-  const totalGlobalWalletARS = globalIngresosARS - globalGastosARS + (globalIngresosUSD * cotizacionDolar);
+  const totalGlobalWalletARS = (globalIngresosARS - globalGastosARS) + ((globalIngresosUSD - globalGastosUSD) * cotizacionDolar);
 
   return (
     <div className="min-h-screen bg-background pb-20">
@@ -225,14 +236,22 @@ export default function ObrasList({ navigate, setActiveObraId }: ObrasListProps)
       {/* In-App Notifications Banner */}
       <div className="fixed top-16 left-0 w-full z-40 px-4 pointer-events-none flex flex-col gap-2">
         <AnimatePresence>
-          {showToasts && unreadAlerts.map(alert => (
+          {showToasts && unreadAlerts.map((alert, idx) => (
             <motion.div
               key={alert.id}
               initial={{ y: -50, opacity: 0 }}
               animate={{ y: 0, opacity: 1 }}
               exit={{ y: -20, opacity: 0, scale: 0.95 }}
-              transition={{ type: "spring", stiffness: 300, damping: 25 }}
-              className="pointer-events-auto w-full max-w-md mx-auto bg-white/90 backdrop-blur-md rounded-2xl shadow-xl border border-black/10 overflow-hidden cursor-pointer"
+              transition={{ type: "spring", stiffness: 300, damping: 25, delay: idx * 0.1 }}
+              drag="y"
+              dragConstraints={{ top: -100, bottom: 0 }}
+              dragElastic={0.2}
+              onDragEnd={(e, info) => {
+                if (info.offset.y < -50 || info.velocity.y < -500) {
+                  dismissAlert(alert.id);
+                }
+              }}
+              className="pointer-events-auto w-full max-w-md mx-auto bg-white/90 backdrop-blur-md rounded-2xl shadow-xl border border-black/10 overflow-hidden cursor-grab active:cursor-grabbing"
               onClick={() => {
                 if ('clearAppBadge' in navigator) {
                   (navigator as any).clearAppBadge().catch(console.error);
@@ -304,7 +323,7 @@ export default function ObrasList({ navigate, setActiveObraId }: ObrasListProps)
             </button>
             <button onClick={() => navigate('ingresos_form_usd')} className="bg-background-alt border border-surface-hover rounded-2xl p-3 flex flex-col items-center justify-center gap-2 hover:border-blue-500 transition-colors">
               <div className="p-2 bg-blue-500/10 text-blue-500 rounded-xl"><DollarSign className="w-5 h-5"/></div>
-              <span className="text-[10px] font-bold text-text-main text-center leading-tight tracking-wider">U$S<br/>{globalIngresosUSD.toLocaleString('es-AR')}</span>
+              <span className="text-[10px] font-bold text-text-main text-center leading-tight tracking-wider">U$S<br/>{(globalIngresosUSD - globalGastosUSD).toLocaleString('es-AR')}</span>
             </button>
             <div className="bg-background-alt border border-surface-hover rounded-2xl p-2 flex flex-col items-center justify-center gap-1.5">
               <span className="text-[9px] font-bold text-text-muted uppercase tracking-wider text-center">Valor<br/>Dólar</span>
