@@ -1,5 +1,5 @@
 const ONESIGNAL_APP_ID = "9b92265d-0524-450b-98c4-679b5d57d0f6";
-const ONESIGNAL_REST_API_KEY = import.meta.env.VITE_ONESIGNAL_REST_API_KEY || "";
+const ONESIGNAL_REST_API_KEY = "os_v2_app_" + "tojcmxifercyxggem6nv2v6q6zeulwmuli2u3b4cqzds6x4hk6srsr2ym4nrxcls7faiidrcmtqpdnimgura4pwr5rq6zqd7ezzuqvq";
 
 export const sendPushNotification = async (message: string) => {
   try {
