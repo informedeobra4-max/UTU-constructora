@@ -318,11 +318,11 @@ export default function ObrasList({ navigate, setActiveObraId }: ObrasListProps)
           </div>
 
           <div className="grid grid-cols-3 gap-3 mt-6">
-            <button onClick={() => navigate('ingresos_form')} className="bg-background-alt border border-surface-hover rounded-2xl p-3 flex flex-col items-center justify-center gap-2 hover:border-primary transition-colors">
+            <button onClick={() => navigate('ingresos_view')} className="bg-background-alt border border-surface-hover rounded-2xl p-3 flex flex-col items-center justify-center gap-2 hover:border-primary transition-colors">
               <div className="p-2 bg-green-500/10 text-green-500 rounded-xl"><Plus className="w-5 h-5"/></div>
               <span className="text-xs font-bold text-text-main">Ingresar</span>
             </button>
-            <button onClick={() => navigate('ingresos_form_usd')} className="bg-background-alt border border-surface-hover rounded-2xl p-3 flex flex-col items-center justify-center gap-2 hover:border-blue-500 transition-colors">
+            <button onClick={() => navigate('ingresos_view')} className="bg-background-alt border border-surface-hover rounded-2xl p-3 flex flex-col items-center justify-center gap-2 hover:border-blue-500 transition-colors">
               <div className="p-2 bg-blue-500/10 text-blue-500 rounded-xl"><DollarSign className="w-5 h-5"/></div>
               <span className="text-[10px] font-bold text-text-main text-center leading-tight tracking-wider">U$S<br/>{globalIngresosUSD.toLocaleString('es-AR')}</span>
             </button>
