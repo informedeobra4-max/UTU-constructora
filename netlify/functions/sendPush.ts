@@ -17,7 +17,10 @@ export default async (req: Request) => {
         app_id: ONESIGNAL_APP_ID,
         included_segments: ["Subscribed Users", "Active Users"],
         headings: { "en": "Mensaje en UTU", "es": "Mensaje en UTU" },
-        contents: { "en": message, "es": message }
+        contents: { "en": message, "es": message },
+        ios_sound: "default",
+        android_sound: "notification",
+        priority: 10
       })
     });
 

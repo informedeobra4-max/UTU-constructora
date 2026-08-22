@@ -5,6 +5,7 @@
 
 import { useState, useEffect } from 'react';
 import OneSignal from 'react-onesignal';
+import { playNotificationSound } from './audio';
 import CalendarView from './components/CalendarView';
 import ComprasForm from './components/ComprasForm';
 import Dashboard from './components/Dashboard';
@@ -41,6 +42,14 @@ export default function App() {
           appId: "9b92265d-0524-450b-98c4-679b5d57d0f6",
           allowLocalhostAsSecureOrigin: true
         });
+        
+        // Listen for foreground push notifications and play sound
+        if (OneSignal.Notifications && OneSignal.Notifications.addEventListener) {
+          OneSignal.Notifications.addEventListener('foregroundWillDisplay', () => {
+            playNotificationSound();
+          });
+        }
+
         OneSignal.Slidedown.promptPush();
       } catch (e) {
         console.error("OneSignal init error:", e);
