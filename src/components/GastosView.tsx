@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react';
-import { ArrowLeft, Briefcase, FileText, Hammer, Search, Trash2 } from 'lucide-react';
+import { ArrowLeft, Briefcase, FileText, Hammer, Search, Trash2, Edit2 } from 'lucide-react';
 import { Screen } from '../types';
 import Logo from './Logo';
 import { supabase } from '../lib/supabaseClient';
@@ -46,6 +46,36 @@ export default function GastosView({ navigate, activeObraId }: GastosViewProps) 
     setIsLoading(false);
   };
 
+  const handleEdit = async (exp: any) => {
+    const pin = prompt('Ingrese PIN de seguridad (2600) para editar:');
+    if (pin !== '2600') {
+      alert('PIN incorrecto. Operación cancelada.');
+      return;
+    }
+    
+    const newAmountStr = prompt(`Monto actual: ${exp.amount}. Ingrese el nuevo monto (solo números):`, exp.amount.toString());
+    if (newAmountStr === null) return;
+    const newAmount = parseFloat(newAmountStr);
+    if (isNaN(newAmount)) {
+      alert('Monto inválido.');
+      return;
+    }
+
+    const newMonedaStr = prompt(`Moneda actual: ${exp.moneda || 'ARS'}. Escriba ARS o USD:`, exp.moneda || 'ARS')?.toUpperCase().trim();
+    if (newMonedaStr === null) return;
+    if (newMonedaStr !== 'ARS' && newMonedaStr !== 'USD') { 
+      alert('Debe ingresar ARS o USD.'); 
+      return; 
+    }
+
+    const { error } = await supabase.from('gastos').update({ amount: newAmount, moneda: newMonedaStr }).eq('id', exp.id);
+    if (!error) {
+      setAllExpenses(prev => prev.map(e => e.id === exp.id ? { ...e, amount: newAmount, moneda: newMonedaStr } : e));
+    } else {
+      alert('Error al actualizar: ' + error.message);
+    }
+  };
+
   const handleDelete = async (id: string) => {
     if (!window.confirm('¿Seguro que deseas eliminar este registro?')) return;
     
@@ -68,11 +98,15 @@ export default function GastosView({ navigate, activeObraId }: GastosViewProps) 
     return matchesFilter && matchesObra;
   });
 
-  const formatCurrency = (val: number) => {
-    return new Intl.NumberFormat('es-AR', { style: 'currency', currency: 'ARS' }).format(val);
+  const formatCurrency = (val: number, moneda: string = 'ARS') => {
+    return new Intl.NumberFormat('es-AR', { style: 'currency', currency: moneda === 'USD' ? 'USD' : 'ARS' }).format(val) + (moneda === 'USD' ? ' USD' : '');
   };
 
-  const totalAmount = expenses.reduce((acc, curr) => acc + curr.amount, 0);
+  const currentDolar = parseFloat(localStorage.getItem('cotizacionDolar') || '1000');
+  const totalAmount = expenses.reduce((acc, curr) => {
+    const valInArs = curr.moneda === 'USD' ? (curr.amount * currentDolar) : curr.amount;
+    return acc + valInArs;
+  }, 0);
 
   const handleExportExcel = () => {
     // Agregamos BOM para que Excel reconozca correctamente los acentos (UTF-8)
@@ -90,7 +124,7 @@ export default function GastosView({ navigate, activeObraId }: GastosViewProps) 
         `"${exp.title}"`,
         `"${exp.subtitle}"`,
         `"${exp.status}"`,
-        exp.amount // El monto sin comillas para que Excel lo reconozca como número y permita sumar
+        exp.moneda === 'USD' ? `"${exp.amount} USD"` : exp.amount
       ].join(separator);
     });
     
@@ -210,7 +244,14 @@ export default function GastosView({ navigate, activeObraId }: GastosViewProps) 
 
                 <div className="text-right flex flex-col items-end justify-center gap-2">
                   <div className="flex items-center gap-2">
-                    <span className="text-text-main font-bold text-lg">{formatCurrency(exp.amount)}</span>
+                    <span className="text-text-main font-bold text-lg">{formatCurrency(exp.amount, exp.moneda)}</span>
+                    <button 
+                      onClick={() => handleEdit(exp)}
+                      className="p-1.5 text-text-muted hover:text-primary hover:bg-primary/10 rounded-lg transition-colors"
+                      title="Editar registro"
+                    >
+                      <Edit2 className="w-4 h-4" />
+                    </button>
                     <button 
                       onClick={() => handleDelete(exp.id)}
                       className="p-1.5 text-text-muted hover:text-red-500 hover:bg-red-500/10 rounded-lg transition-colors"
@@ -241,8 +282,8 @@ export default function GastosView({ navigate, activeObraId }: GastosViewProps) 
         {/* Sticky Bottom Summary Bar */}
         <div className="fixed bottom-[27px] left-0 w-full z-40 bg-primary p-5 shadow-[0_-10px_30px_rgba(255,107,0,0.2)]">
           <div className="flex justify-between items-center max-w-md mx-auto">
-            <span className="text-xs font-bold tracking-widest text-background uppercase">Total Gastos Filtrados</span>
-            <span className="text-2xl font-extrabold text-background tracking-tight">{formatCurrency(totalAmount)}</span>
+            <span className="text-xs font-bold tracking-widest text-background uppercase">Total Gastos Filtrados (ARS)</span>
+            <span className="text-2xl font-extrabold text-background tracking-tight">{formatCurrency(totalAmount, 'ARS')}</span>
           </div>
         </div>
       </div>
@@ -285,14 +326,14 @@ export default function GastosView({ navigate, activeObraId }: GastosViewProps) 
                     {exp.status}
                   </span>
                 </td>
-                <td className="py-4 px-2 text-right font-bold">{formatCurrency(exp.amount)}</td>
+                <td className="py-4 px-2 text-right font-bold">{formatCurrency(exp.amount, exp.moneda)}</td>
               </tr>
             ))}
           </tbody>
           <tfoot>
             <tr>
-              <td colSpan={4} className="py-6 px-2 text-right font-bold uppercase tracking-widest text-sm">Total General</td>
-              <td className="py-6 px-2 text-right font-black text-xl">{formatCurrency(totalAmount)}</td>
+              <td colSpan={4} className="py-6 px-2 text-right font-bold uppercase tracking-widest text-sm">Total General (Convertido a ARS)</td>
+              <td className="py-6 px-2 text-right font-black text-xl">{formatCurrency(totalAmount, 'ARS')}</td>
             </tr>
           </tfoot>
         </table>
