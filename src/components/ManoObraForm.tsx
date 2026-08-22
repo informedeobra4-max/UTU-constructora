@@ -117,7 +117,7 @@ export default function ManoObraForm({ navigate, activeObraId }: ManoObraFormPro
       <header className="flex items-center justify-between px-4 py-4 bg-background/95 backdrop-blur-md sticky top-0 z-50 border-b border-surface">
         <div className="flex items-center gap-3">
           <Logo onClick={() => navigate('splash')} />
-          <button onClick={() => navigate('obras_list')} className="p-1 text-text-muted hover:text-text-main rounded-full bg-surface transition-colors">
+          <button onClick={() => navigate('back')} className="p-1 text-text-muted hover:text-text-main rounded-full bg-surface transition-colors">
             <ArrowLeft className="w-5 h-5" />
           </button>
         </div>

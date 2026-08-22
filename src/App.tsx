@@ -28,6 +28,7 @@ import { Screen } from './types';
 
 export default function App() {
   const [currentScreen, setCurrentScreen] = useState<Screen>('splash');
+  const [history, setHistory] = useState<Screen[]>(['splash']);
   const [activeObraId, setActiveObraId] = useState<number | 'general'>('general');
   const [categoriaArchivos, setCategoriaArchivos] = useState<string>('PLANOS');
 
@@ -47,6 +48,27 @@ export default function App() {
   }, []);
 
   const navigate = (screen: Screen) => {
+    if (screen === 'back') {
+      if (history.length > 1) {
+        const newHistory = [...history];
+        newHistory.pop(); // remove current screen
+        const prevScreen = newHistory[newHistory.length - 1];
+        setHistory(newHistory);
+        setCurrentScreen(prevScreen);
+        window.scrollTo(0, 0);
+      } else {
+        // Fallback if no history
+        setCurrentScreen('obras_list');
+        setHistory(['obras_list']);
+        window.scrollTo(0, 0);
+      }
+      return;
+    }
+    
+    // Prevent adding the same screen twice in a row
+    if (history[history.length - 1] !== screen) {
+      setHistory(prev => [...prev, screen]);
+    }
     setCurrentScreen(screen);
     window.scrollTo(0, 0);
   };

@@ -23,7 +23,7 @@ export default function InfoObraView({ navigate, setCategoriaArchivos, activeObr
       <header className="flex items-center justify-between px-4 py-4 bg-background border-b border-surface sticky top-0 z-50">
         <div className="flex items-center space-x-3">
           <Logo onClick={() => navigate('splash')} />
-          <button onClick={() => navigate('dashboard')} className="p-1 text-text-muted hover:text-text-main rounded-full bg-surface transition-colors">
+          <button onClick={() => navigate('back')} className="p-1 text-text-muted hover:text-text-main rounded-full bg-surface transition-colors">
             <ArrowLeft className="w-5 h-5" />
           </button>
         </div>

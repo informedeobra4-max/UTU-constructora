@@ -114,7 +114,7 @@ export default function VariosForm({ navigate, activeObraId }: VariosFormProps) 
       />
       {/* Top App Bar */}
       <header className="flex items-center px-4 py-4 bg-background border-b border-surface sticky top-0 z-50">
-        <button onClick={() => navigate('obras_list')} className="p-2 text-text-muted hover:text-text-main rounded-full hover:bg-surface transition-colors mr-3">
+        <button onClick={() => navigate('back')} className="p-2 text-text-muted hover:text-text-main rounded-full hover:bg-surface transition-colors mr-3">
           <ArrowLeft className="w-6 h-6" />
         </button>
         <Logo onClick={() => navigate('splash')} />

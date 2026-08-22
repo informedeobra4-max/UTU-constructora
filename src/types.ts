@@ -1,4 +1,4 @@
-export type Screen = 'splash' | 'dashboard' | 'compras' | 'mano_obra' | 'gastos' | 'varios' | 'login' | 'notifications' | 'obras_list' | 'calendar' | 'pagos_view' | 'presupuestos_view' | 'presupuestos_form' | 'ingresos_view' | 'ingresos_form' | 'ingresos_form_usd' | 'info_obra' | 'archivos_categoria' | 'archivo_form';
+export type Screen = 'splash' | 'dashboard' | 'compras' | 'mano_obra' | 'gastos' | 'varios' | 'login' | 'notifications' | 'obras_list' | 'calendar' | 'pagos_view' | 'presupuestos_view' | 'presupuestos_form' | 'ingresos_view' | 'ingresos_form' | 'ingresos_form_usd' | 'info_obra' | 'archivos_categoria' | 'archivo_form' | 'back';
 
 export interface AppState {
   currentScreen: Screen;
