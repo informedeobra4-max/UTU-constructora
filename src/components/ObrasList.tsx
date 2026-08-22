@@ -25,6 +25,7 @@ export default function ObrasList({ navigate, setActiveObraId }: ObrasListProps)
   const [globalIngresosUSD, setGlobalIngresosUSD] = useState(0);
   const [globalGastosARS, setGlobalGastosARS] = useState(0);
   const [globalGastosUSD, setGlobalGastosUSD] = useState(0);
+  const [calculatedTotalWalletARS, setCalculatedTotalWalletARS] = useState(0);
   
   const [isBalanceVisible, setIsBalanceVisible] = useState<boolean>(() => {
     const saved = localStorage.getItem('isBalanceVisible');
@@ -78,15 +79,18 @@ export default function ObrasList({ navigate, setActiveObraId }: ObrasListProps)
       const totalsPorObra: Record<number, number> = {};
       let totalGastosARS = 0;
       let totalGastosUSD = 0;
+      let totalGastosUSDConvertedToARS = 0;
       obras.forEach(obra => totalsPorObra[obra.id] = 0);
 
       const currentDolar = parseFloat(localStorage.getItem('cotizacionDolar') || '1000');
 
       gastos?.forEach(gasto => {
         const amt = gasto.amount || 0;
+        const rate = gasto.cotizacion_dolar || currentDolar;
         
         if (gasto.moneda === 'USD') {
           totalGastosUSD += amt;
+          totalGastosUSDConvertedToARS += amt * rate;
         } else {
           totalGastosARS += amt;
         }
@@ -94,7 +98,7 @@ export default function ObrasList({ navigate, setActiveObraId }: ObrasListProps)
         const obraName = gasto.subtitle?.split(' • ')[0]?.trim();
         const obraMatch = obras.find(o => o.name?.trim() === obraName);
         if (obraMatch) {
-          const amtInARS = gasto.moneda === 'USD' ? amt * currentDolar : amt;
+          const amtInARS = gasto.moneda === 'USD' ? amt * rate : amt;
           totalsPorObra[obraMatch.id] = (totalsPorObra[obraMatch.id] || 0) + amtInARS;
         }
       });
@@ -103,15 +107,18 @@ export default function ObrasList({ navigate, setActiveObraId }: ObrasListProps)
       setGlobalGastosUSD(totalGastosUSD);
 
       // 2. Fetch Ingresos
-      const { data: ingresos, error: errIngresos } = await supabase.from('ingresos').select('monto, moneda');
+      const { data: ingresos, error: errIngresos } = await supabase.from('ingresos').select('monto, moneda, cotizacion_dolar');
       if (errIngresos) console.error('Error fetching ingresos:', errIngresos);
 
       let totalInARS = 0;
       let totalInUSD = 0;
+      let totalInUSDConvertedToARS = 0;
 
       ingresos?.forEach(ing => {
         if (ing.moneda === 'USD') {
           totalInUSD += (ing.monto || 0);
+          const rate = ing.cotizacion_dolar || currentDolar;
+          totalInUSDConvertedToARS += (ing.monto || 0) * rate;
         } else {
           totalInARS += (ing.monto || 0);
         }
@@ -119,6 +126,13 @@ export default function ObrasList({ navigate, setActiveObraId }: ObrasListProps)
 
       setGlobalIngresosARS(totalInARS);
       setGlobalIngresosUSD(totalInUSD);
+      // We could store the converted total in state, but let's just use it below
+      
+      const ingresosTotalesConvertidos = totalInARS + totalInUSDConvertedToARS;
+      const gastosTotalesConvertidos = totalGastosARS + totalGastosUSDConvertedToARS;
+      
+      // I need to set a state for totalGlobalWalletARS
+      setCalculatedTotalWalletARS(ingresosTotalesConvertidos - gastosTotalesConvertidos);
     };
 
     if (obras.length > 0) {
@@ -220,10 +234,6 @@ export default function ObrasList({ navigate, setActiveObraId }: ObrasListProps)
       maximumFractionDigits: 0
     }).format(amount);
   };
-
-  const ingresosTotalesConvertidos = globalIngresosARS + (globalIngresosUSD * cotizacionDolar);
-  const gastosTotalesConvertidos = globalGastosARS + (globalGastosUSD * cotizacionDolar);
-  const totalGlobalWalletARS = ingresosTotalesConvertidos - gastosTotalesConvertidos;
 
   return (
     <div className="min-h-screen bg-background pb-20">
@@ -328,7 +338,7 @@ export default function ObrasList({ navigate, setActiveObraId }: ObrasListProps)
               </p>
               <div className="flex items-center gap-2">
                 <h1 className="text-4xl font-light text-green-500 tracking-tight">
-                  {isBalanceVisible ? formatCurrency(totalGlobalWalletARS) : '••••••••'}
+                  {isBalanceVisible ? formatCurrency(calculatedTotalWalletARS) : '••••••••'}
                 </h1>
               </div>
             </div>

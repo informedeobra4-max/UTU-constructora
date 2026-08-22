@@ -30,14 +30,15 @@ export default function PagosView({ navigate, activeObraId }: PagosViewProps) {
       setObraName(currentName);
 
       const currentDolar = parseFloat(localStorage.getItem('cotizacionDolar') || '1000');
-      const { data, error } = await supabase.from('gastos').select('amount, subtitle, type, moneda');
+      const { data, error } = await supabase.from('gastos').select('amount, subtitle, type, moneda, cotizacion_dolar');
       if (error || !data) return;
 
       let total = 0, mat = 0, mano = 0, varios = 0;
       data.forEach(gasto => {
         const gastoObraName = gasto.subtitle?.split(' • ')[0];
         if (gastoObraName === currentName || (activeObraId === 'general' && gastoObraName === 'General')) {
-          const valInArs = gasto.moneda === 'USD' ? (gasto.amount || 0) * currentDolar : (gasto.amount || 0);
+          const rate = gasto.cotizacion_dolar || currentDolar;
+          const valInArs = gasto.moneda === 'USD' ? (gasto.amount || 0) * rate : (gasto.amount || 0);
           total += valInArs;
           if (gasto.type === 'materiales') mat += valInArs;
           if (gasto.type === 'mano_obra') mano += valInArs;

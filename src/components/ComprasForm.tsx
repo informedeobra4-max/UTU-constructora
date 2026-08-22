@@ -66,6 +66,8 @@ export default function ComprasForm({ navigate, activeObraId }: ComprasFormProps
       if (obra) obraName = obra.name;
     }
 
+    const currentDolar = parseFloat(localStorage.getItem('cotizacionDolar') || '1000');
+
     const { data, error } = await supabase.from('gastos').insert([
       {
         type: 'materiales',
@@ -74,7 +76,8 @@ export default function ComprasForm({ navigate, activeObraId }: ComprasFormProps
         amount: parseFloat(amount) || 0,
         status: 'Pendiente',
         encargado: encargado,
-        moneda: moneda
+        moneda: moneda,
+        cotizacion_dolar: currentDolar
       }
     ]).select();
 

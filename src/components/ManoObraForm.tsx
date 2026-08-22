@@ -66,6 +66,8 @@ export default function ManoObraForm({ navigate, activeObraId }: ManoObraFormPro
       if (obra) obraName = obra.name;
     }
 
+    const currentDolar = parseFloat(localStorage.getItem('cotizacionDolar') || '1000');
+
     const { data, error } = await supabase.from('gastos').insert([
       {
         type: 'mano_obra',
@@ -74,7 +76,8 @@ export default function ManoObraForm({ navigate, activeObraId }: ManoObraFormPro
         amount: parseFloat(amount) || 0,
         status: 'Pendiente',
         encargado: encargado,
-        moneda: moneda
+        moneda: moneda,
+        cotizacion_dolar: currentDolar
       }
     ]).select();
 

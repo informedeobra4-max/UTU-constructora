@@ -65,6 +65,8 @@ export default function VariosForm({ navigate, activeObraId }: VariosFormProps) 
       if (obra) obraName = obra.name;
     }
 
+    const currentDolar = parseFloat(localStorage.getItem('cotizacionDolar') || '1000');
+
     const { data, error } = await supabase.from('gastos').insert([
       {
         type: 'varios',
@@ -73,7 +75,8 @@ export default function VariosForm({ navigate, activeObraId }: VariosFormProps) 
         amount: parseFloat(amount) || 0,
         status: 'Pendiente',
         encargado: encargado,
-        moneda: moneda
+        moneda: moneda,
+        cotizacion_dolar: currentDolar
       }
     ]).select();
 

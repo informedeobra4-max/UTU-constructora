@@ -80,7 +80,8 @@ export default function GastosView({ navigate, activeObraId, setEditingGastoId }
 
   const currentDolar = parseFloat(localStorage.getItem('cotizacionDolar') || '1000');
   const totalAmount = expenses.reduce((acc, curr) => {
-    const valInArs = curr.moneda === 'USD' ? (curr.amount * currentDolar) : curr.amount;
+    const rate = curr.cotizacion_dolar || currentDolar;
+    const valInArs = curr.moneda === 'USD' ? (curr.amount * rate) : curr.amount;
     return acc + valInArs;
   }, 0);
 

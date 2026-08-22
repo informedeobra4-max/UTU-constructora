@@ -39,13 +39,16 @@ export default function IngresosForm({ navigate, activeObraId, defaultCurrency =
     if (isSubmitting) return;
     setIsSubmitting(true);
 
+    const currentDolar = parseFloat(localStorage.getItem('cotizacionDolar') || '1000');
+
     const { error } = await supabase.from('ingresos').insert([
       {
         obra_id: selectedObra.toString(),
         monto: parseFloat(monto) || 0,
         concepto: concepto,
         encargado: encargado,
-        moneda: moneda
+        moneda: moneda,
+        cotizacion_dolar: currentDolar
       }
     ]);
 
