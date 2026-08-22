@@ -42,6 +42,13 @@ export default function IngresosView({ navigate, activeObraId }: IngresosViewPro
   }, [activeObraId]);
 
   const handleDelete = async (id: number) => {
+    const pin = prompt('Se requiere autorización para eliminar un ingreso. Ingrese el PIN de 4 dígitos:');
+    if (pin === null) return;
+    if (pin !== '2600') {
+      alert('PIN incorrecto. Operación cancelada.');
+      return;
+    }
+
     if (confirm('¿Seguro que deseas eliminar este depósito? Esto afectará el Valor Inicial.')) {
       const { error } = await supabase.from('ingresos').delete().eq('id', id);
       if (!error) {
