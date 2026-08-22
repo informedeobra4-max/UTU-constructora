@@ -29,17 +29,19 @@ export default function PagosView({ navigate, activeObraId }: PagosViewProps) {
       }
       setObraName(currentName);
 
-      const { data, error } = await supabase.from('gastos').select('amount, subtitle, type');
+      const currentDolar = parseFloat(localStorage.getItem('cotizacionDolar') || '1000');
+      const { data, error } = await supabase.from('gastos').select('amount, subtitle, type, moneda');
       if (error || !data) return;
 
       let total = 0, mat = 0, mano = 0, varios = 0;
       data.forEach(gasto => {
         const gastoObraName = gasto.subtitle?.split(' • ')[0];
         if (gastoObraName === currentName || (activeObraId === 'general' && gastoObraName === 'General')) {
-          total += gasto.amount || 0;
-          if (gasto.type === 'materiales') mat += gasto.amount || 0;
-          if (gasto.type === 'mano_obra') mano += gasto.amount || 0;
-          if (gasto.type === 'varios') varios += gasto.amount || 0;
+          const valInArs = gasto.moneda === 'USD' ? (gasto.amount || 0) * currentDolar : (gasto.amount || 0);
+          total += valInArs;
+          if (gasto.type === 'materiales') mat += valInArs;
+          if (gasto.type === 'mano_obra') mano += valInArs;
+          if (gasto.type === 'varios') varios += valInArs;
         }
       });
       setGastosTotales(total);

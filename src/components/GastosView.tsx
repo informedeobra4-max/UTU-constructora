@@ -8,9 +8,10 @@ import logoUrl from '../assets/logo.jpeg';
 interface GastosViewProps {
   navigate: (screen: Screen) => void;
   activeObraId: number | 'general';
+  setEditingGastoId: (id: string | null) => void;
 }
 
-export default function GastosView({ navigate, activeObraId }: GastosViewProps) {
+export default function GastosView({ navigate, activeObraId, setEditingGastoId }: GastosViewProps) {
   const [filterType, setFilterType] = useState<'todos' | 'materiales' | 'mano_obra' | 'varios'>('todos');
   const [allExpenses, setAllExpenses] = useState<any[]>([]);
   const [isLoading, setIsLoading] = useState(true);
@@ -46,34 +47,9 @@ export default function GastosView({ navigate, activeObraId }: GastosViewProps) 
     setIsLoading(false);
   };
 
-  const handleEdit = async (exp: any) => {
-    const pin = prompt('Ingrese PIN de seguridad (2600) para editar:');
-    if (pin !== '2600') {
-      alert('PIN incorrecto. Operación cancelada.');
-      return;
-    }
-    
-    const newAmountStr = prompt(`Monto actual: ${exp.amount}. Ingrese el nuevo monto (solo números):`, exp.amount.toString());
-    if (newAmountStr === null) return;
-    const newAmount = parseFloat(newAmountStr);
-    if (isNaN(newAmount)) {
-      alert('Monto inválido.');
-      return;
-    }
-
-    const newMonedaStr = prompt(`Moneda actual: ${exp.moneda || 'ARS'}. Escriba ARS o USD:`, exp.moneda || 'ARS')?.toUpperCase().trim();
-    if (newMonedaStr === null) return;
-    if (newMonedaStr !== 'ARS' && newMonedaStr !== 'USD') { 
-      alert('Debe ingresar ARS o USD.'); 
-      return; 
-    }
-
-    const { error } = await supabase.from('gastos').update({ amount: newAmount, moneda: newMonedaStr }).eq('id', exp.id);
-    if (!error) {
-      setAllExpenses(prev => prev.map(e => e.id === exp.id ? { ...e, amount: newAmount, moneda: newMonedaStr } : e));
-    } else {
-      alert('Error al actualizar: ' + error.message);
-    }
+  const handleEdit = (exp: any) => {
+    setEditingGastoId(exp.id);
+    navigate('gasto_edit');
   };
 
   const handleDelete = async (id: string) => {

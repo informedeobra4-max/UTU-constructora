@@ -24,12 +24,14 @@ import ArchivosCategoriaView from './components/ArchivosCategoriaView';
 import ArchivoForm from './components/ArchivoForm';
 import SplashScreen from './components/SplashScreen';
 import PWAInstallButton from './components/PWAInstallButton';
+import GastoEditForm from './components/GastoEditForm';
 import { Screen } from './types';
 
 export default function App() {
   const [currentScreen, setCurrentScreen] = useState<Screen>('splash');
   const [history, setHistory] = useState<Screen[]>(['splash']);
   const [activeObraId, setActiveObraId] = useState<number | 'general'>('general');
+  const [editingGastoId, setEditingGastoId] = useState<string | null>(null);
   const [categoriaArchivos, setCategoriaArchivos] = useState<string>('PLANOS');
 
   useEffect(() => {
@@ -84,8 +86,9 @@ export default function App() {
       {currentScreen === 'compras' && <ComprasForm navigate={navigate} activeObraId={activeObraId} />}
       {currentScreen === 'mano_obra' && <ManoObraForm navigate={navigate} activeObraId={activeObraId} />}
       {currentScreen === 'varios' && <VariosForm navigate={navigate} activeObraId={activeObraId} />}
-      {currentScreen === 'gastos' && <GastosView navigate={navigate} activeObraId={activeObraId} />}
+      {currentScreen === 'gastos' && <GastosView navigate={navigate} activeObraId={activeObraId} setEditingGastoId={setEditingGastoId} />}
       {currentScreen === 'pagos_view' && <PagosView navigate={navigate} activeObraId={activeObraId} />}
+      {currentScreen === 'gasto_edit' && <GastoEditForm navigate={navigate} activeObraId={activeObraId} editingGastoId={editingGastoId} />}
       {currentScreen === 'presupuestos_view' && <PresupuestosView navigate={navigate} activeObraId={activeObraId} />}
       {currentScreen === 'presupuestos_form' && <PresupuestosForm navigate={navigate} activeObraId={activeObraId} />}
       {currentScreen === 'ingresos_view' && <IngresosView navigate={navigate} activeObraId={activeObraId} />}
