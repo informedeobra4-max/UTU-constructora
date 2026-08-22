@@ -409,8 +409,8 @@ export default function ObrasList({ navigate, setActiveObraId }: ObrasListProps)
                 )}
                 
                 <div className="space-y-1">
-                  <p className="text-[10px] font-bold tracking-widest text-text-muted uppercase">Gasto Total Acumulado</p>
-                  <p className="text-3xl font-light text-green-500 tracking-tight">{formatCurrency(gastosTotales[obra.id] || 0)}</p>
+                  <p className="text-[10px] font-bold tracking-widest text-red-500/70 uppercase">Gasto Total Acumulado</p>
+                  <p className="text-3xl font-light text-red-500 tracking-tight">{formatCurrency(gastosTotales[obra.id] || 0)}</p>
                 </div>
                 <button className="w-full mt-5 bg-background-alt group-hover:bg-primary group-hover:text-background text-text-main font-bold py-3 rounded-xl transition-colors flex items-center justify-center gap-2">
                   Ver Detalles <ArrowRight className="w-4 h-4" />
