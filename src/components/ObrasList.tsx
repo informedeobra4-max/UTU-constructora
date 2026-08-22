@@ -1,5 +1,5 @@
 import React from 'react';
-import { Bell, ArrowRight, Plus, Calendar, Trash2, Edit2, Camera, X, DollarSign } from 'lucide-react';
+import { Bell, ArrowRight, Plus, Calendar, Trash2, Edit2, Camera, X, DollarSign, Eye, EyeOff } from 'lucide-react';
 import { useState, useEffect } from 'react';
 import { Screen } from '../types';
 import Logo from './Logo';
@@ -25,6 +25,12 @@ export default function ObrasList({ navigate, setActiveObraId }: ObrasListProps)
   const [globalIngresosUSD, setGlobalIngresosUSD] = useState(0);
   const [globalGastosARS, setGlobalGastosARS] = useState(0);
   const [globalGastosUSD, setGlobalGastosUSD] = useState(0);
+  
+  const [isBalanceVisible, setIsBalanceVisible] = useState<boolean>(() => {
+    const saved = localStorage.getItem('isBalanceVisible');
+    return saved !== null ? saved === 'true' : true;
+  });
+
   const [cotizacionDolar, setCotizacionDolar] = useState<number>(() => {
     const saved = localStorage.getItem('cotizacionDolar');
     return saved ? parseFloat(saved) : 1000;
@@ -124,6 +130,12 @@ export default function ObrasList({ navigate, setActiveObraId }: ObrasListProps)
     const val = parseFloat(e.target.value) || 0;
     setCotizacionDolar(val);
     localStorage.setItem('cotizacionDolar', val.toString());
+  };
+
+  const toggleBalanceVisibility = () => {
+    const newValue = !isBalanceVisible;
+    setIsBalanceVisible(newValue);
+    localStorage.setItem('isBalanceVisible', String(newValue));
   };
 
   const dismissAlert = async (id: number) => {
@@ -308,10 +320,15 @@ export default function ObrasList({ navigate, setActiveObraId }: ObrasListProps)
         <div className="bg-surface rounded-3xl p-6 shadow-sm border border-surface-hover mt-8">
           <div className="flex justify-between items-start mb-2">
             <div>
-              <p className="text-xs text-text-muted font-bold tracking-widest uppercase mb-1">Balance Total Global</p>
+              <p className="text-xs text-text-muted font-bold tracking-widest uppercase mb-1 flex items-center gap-2">
+                Balance Total Global
+                <button onClick={toggleBalanceVisibility} className="text-text-muted hover:text-text-main transition-colors">
+                  {isBalanceVisible ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
+                </button>
+              </p>
               <div className="flex items-center gap-2">
                 <h1 className="text-4xl font-light text-green-500 tracking-tight">
-                  {formatCurrency(totalGlobalWalletARS)}
+                  {isBalanceVisible ? formatCurrency(totalGlobalWalletARS) : '••••••••'}
                 </h1>
               </div>
             </div>
