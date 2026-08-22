@@ -132,7 +132,7 @@ export default function Dashboard({ navigate, activeObraId }: DashboardProps) {
               <TrendingDown className="w-8 h-8" />
             </div>
             <h2 className="text-xs text-text-muted font-black tracking-widest uppercase mb-2">Total Gastado en esta Obra (ARS)</h2>
-            <p className="text-4xl font-extrabold text-red-500 tracking-tight">{formatCurrency(gastosTotales)}</p>
+            <p className="text-4xl font-light text-red-500 tracking-tight">{formatCurrency(gastosTotales)}</p>
             <p className="text-[10px] text-text-muted mt-2 font-medium">Incluye gastos en USD convertidos a la cotización actual</p>
           </div>
         </div>

@@ -209,7 +209,9 @@ export default function ObrasList({ navigate, setActiveObraId }: ObrasListProps)
     }).format(amount);
   };
 
-  const totalGlobalWalletARS = (globalIngresosARS - globalGastosARS) + ((globalIngresosUSD - globalGastosUSD) * cotizacionDolar);
+  const ingresosTotalesConvertidos = globalIngresosARS + (globalIngresosUSD * cotizacionDolar);
+  const gastosTotalesConvertidos = globalGastosARS + (globalGastosUSD * cotizacionDolar);
+  const totalGlobalWalletARS = ingresosTotalesConvertidos - gastosTotalesConvertidos;
 
   return (
     <div className="min-h-screen bg-background pb-20">
@@ -308,7 +310,7 @@ export default function ObrasList({ navigate, setActiveObraId }: ObrasListProps)
             <div>
               <p className="text-xs text-text-muted font-bold tracking-widest uppercase mb-1">Balance Total Global</p>
               <div className="flex items-center gap-2">
-                <h1 className="text-4xl font-black text-green-500 tracking-tighter">
+                <h1 className="text-4xl font-light text-green-500 tracking-tight">
                   {formatCurrency(totalGlobalWalletARS)}
                 </h1>
               </div>
@@ -322,7 +324,7 @@ export default function ObrasList({ navigate, setActiveObraId }: ObrasListProps)
             </button>
             <button onClick={() => navigate('ingresos_form_usd')} className="bg-background-alt border border-surface-hover rounded-2xl p-3 flex flex-col items-center justify-center gap-2 hover:border-blue-500 transition-colors">
               <div className="p-2 bg-blue-500/10 text-blue-500 rounded-xl"><DollarSign className="w-5 h-5"/></div>
-              <span className="text-[10px] font-bold text-text-main text-center leading-tight tracking-wider">U$S<br/>{(globalIngresosUSD - globalGastosUSD).toLocaleString('es-AR')}</span>
+              <span className="text-[10px] font-bold text-text-main text-center leading-tight tracking-wider">U$S<br/>{globalIngresosUSD.toLocaleString('es-AR')}</span>
             </button>
             <div className="bg-background-alt border border-surface-hover rounded-2xl p-2 flex flex-col items-center justify-center gap-1.5">
               <span className="text-[9px] font-bold text-text-muted uppercase tracking-wider text-center">Valor<br/>Dólar</span>
@@ -408,7 +410,7 @@ export default function ObrasList({ navigate, setActiveObraId }: ObrasListProps)
                 
                 <div className="space-y-1">
                   <p className="text-[10px] font-bold tracking-widest text-text-muted uppercase">Gasto Total Acumulado</p>
-                  <p className="text-3xl font-extrabold text-green-500 tracking-tight">{formatCurrency(gastosTotales[obra.id] || 0)}</p>
+                  <p className="text-3xl font-light text-green-500 tracking-tight">{formatCurrency(gastosTotales[obra.id] || 0)}</p>
                 </div>
                 <button className="w-full mt-5 bg-background-alt group-hover:bg-primary group-hover:text-background text-text-main font-bold py-3 rounded-xl transition-colors flex items-center justify-center gap-2">
                   Ver Detalles <ArrowRight className="w-4 h-4" />
