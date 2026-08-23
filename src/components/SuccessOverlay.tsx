@@ -6,9 +6,10 @@ import { playSuccessSound } from '../audio';
 interface SuccessOverlayProps {
   isVisible: boolean;
   onComplete: () => void;
+  message?: string;
 }
 
-export default function SuccessOverlay({ isVisible, onComplete }: SuccessOverlayProps) {
+export default function SuccessOverlay({ isVisible, onComplete, message }: SuccessOverlayProps) {
   useEffect(() => {
     if (isVisible) {
       // 1. Reproducir sonido de éxito
@@ -54,9 +55,19 @@ export default function SuccessOverlay({ isVisible, onComplete }: SuccessOverlay
               damping: 10,
               delay: 0.1
             }}
-            className="relative z-10 p-6"
+            className="relative z-10 flex flex-col items-center justify-center p-6 gap-4"
           >
             <Check className="w-24 h-24 text-black" strokeWidth={3} />
+            {message && (
+              <motion.p
+                initial={{ opacity: 0, y: 10 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ delay: 0.3 }}
+                className="text-black font-black text-xl text-center bg-white/50 px-4 py-2 rounded-xl backdrop-blur-sm"
+              >
+                {message}
+              </motion.p>
+            )}
           </motion.div>
         </div>
       )}
