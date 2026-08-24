@@ -20,7 +20,10 @@ export default async (req: Request) => {
         contents: { "en": message, "es": message },
         ios_sound: "default",
         android_sound: "notification",
-        priority: 10
+        priority: 10,
+        ios_badgeType: "Increase",
+        ios_badgeCount: 1,
+        adm_badgeCount: 1
       })
     });
 
