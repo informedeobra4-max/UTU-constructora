@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react';
-import { ArrowLeft, Briefcase, FileText, Hammer, Search, Trash2, Edit2 } from 'lucide-react';
+import { ArrowLeft, Search, Edit2, Trash2, Eye, EyeOff, Briefcase, FileText, Hammer } from 'lucide-react';
 import { Screen } from '../types';
 import Logo from './Logo';
 import { supabase } from '../lib/supabaseClient';
@@ -17,6 +17,17 @@ export default function GastosView({ navigate, activeObraId, setEditingGastoId }
   const [isLoading, setIsLoading] = useState(true);
   const [failedImages, setFailedImages] = useState<Record<string, boolean>>({});
   const [activeObraName, setActiveObraName] = useState<string>('General');
+  
+  const [isBalanceVisible, setIsBalanceVisible] = useState<boolean>(() => {
+    const saved = localStorage.getItem('isBalanceVisible');
+    return saved !== null ? JSON.parse(saved) : true;
+  });
+
+  const toggleBalanceVisibility = () => {
+    const newValue = !isBalanceVisible;
+    setIsBalanceVisible(newValue);
+    localStorage.setItem('isBalanceVisible', JSON.stringify(newValue));
+  };
 
   useEffect(() => {
     const init = async () => {
@@ -259,8 +270,15 @@ export default function GastosView({ navigate, activeObraId, setEditingGastoId }
         {/* Sticky Bottom Summary Bar */}
         <div className="fixed bottom-[27px] left-0 w-full z-40 bg-primary p-5 shadow-[0_-10px_30px_rgba(255,107,0,0.2)]">
           <div className="flex justify-between items-center max-w-md mx-auto">
-            <span className="text-xs font-bold tracking-widest text-background uppercase">Total Gastos Filtrados (ARS)</span>
-            <span className="text-2xl font-extrabold text-background tracking-tight">{formatCurrency(totalAmount, 'ARS')}</span>
+            <div className="flex items-center gap-2">
+              <span className="text-xs font-bold tracking-widest text-background uppercase">Total Gastos Filtrados (ARS)</span>
+              <button onClick={toggleBalanceVisibility} className="text-background/70 hover:text-background transition-colors">
+                {isBalanceVisible ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
+              </button>
+            </div>
+            <span className="text-2xl font-extrabold text-background tracking-tight">
+              {isBalanceVisible ? formatCurrency(totalAmount, 'ARS') : '••••••••'}
+            </span>
           </div>
         </div>
       </div>

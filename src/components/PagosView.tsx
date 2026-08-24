@@ -1,4 +1,4 @@
-import { ArrowLeft, Briefcase, FileText, Hammer, Receipt } from 'lucide-react';
+import { ArrowLeft, Briefcase, FileText, Hammer, Receipt, Eye, EyeOff } from 'lucide-react';
 import { useState, useEffect } from 'react';
 import { Screen } from '../types';
 import Logo from './Logo';
@@ -16,6 +16,17 @@ export default function PagosView({ navigate, activeObraId }: PagosViewProps) {
   const [gastosManoObra, setGastosManoObra] = useState(0);
   const [gastosVarios, setGastosVarios] = useState(0);
   const [isLoading, setIsLoading] = useState(true);
+  const [isBalanceVisible, setIsBalanceVisible] = useState<boolean>(() => {
+    const saved = localStorage.getItem('isBalanceVisible');
+    return saved !== null ? JSON.parse(saved) : true;
+  });
+
+  const toggleBalanceVisibility = () => {
+    const newValue = !isBalanceVisible;
+    setIsBalanceVisible(newValue);
+    localStorage.setItem('isBalanceVisible', JSON.stringify(newValue));
+    window.dispatchEvent(new Event('balanceVisibilityChanged'));
+  };
 
   useEffect(() => {
     const init = async () => {
@@ -89,8 +100,15 @@ export default function PagosView({ navigate, activeObraId }: PagosViewProps) {
           <div className="absolute top-0 left-0 w-full h-1.5 bg-green-500" />
           <div className="text-center space-y-2">
             <h2 className="text-xs text-text-muted font-bold tracking-widest uppercase">Gastos de {obraName}</h2>
-            <h3 className="text-green-500 font-bold text-lg">Total Acumulado</h3>
-            <p className="text-4xl font-extrabold text-green-500 tracking-tight">{formatCurrency(gastosTotales)}</p>
+            <div className="flex items-center justify-center gap-2">
+              <h3 className="text-green-500 font-bold text-lg">Total Acumulado</h3>
+              <button onClick={toggleBalanceVisibility} className="text-green-500/70 hover:text-green-500 transition-colors">
+                {isBalanceVisible ? <EyeOff className="w-5 h-5" /> : <Eye className="w-5 h-5" />}
+              </button>
+            </div>
+            <p className="text-4xl font-extrabold text-green-500 tracking-tight">
+              {isBalanceVisible ? formatCurrency(gastosTotales) : '••••••••'}
+            </p>
           </div>
         </div>
 
@@ -104,7 +122,7 @@ export default function PagosView({ navigate, activeObraId }: PagosViewProps) {
               </div>
               <div className="flex-1">
                 <h3 className="text-text-main font-semibold text-lg">Materiales / Compras</h3>
-                <p className="text-text-muted text-sm mt-1">Subtotal: <span className="text-text-main font-bold">{formatCurrency(gastosMateriales)}</span></p>
+                <p className="text-text-muted text-sm mt-1">Subtotal: <span className="text-text-main font-bold">{isBalanceVisible ? formatCurrency(gastosMateriales) : '••••'}</span></p>
               </div>
             </div>
             <button
@@ -123,7 +141,7 @@ export default function PagosView({ navigate, activeObraId }: PagosViewProps) {
               </div>
               <div className="flex-1">
                 <h3 className="text-text-main font-semibold text-lg">Mano de Obra</h3>
-                <p className="text-text-muted text-sm mt-1">Subtotal: <span className="text-text-main font-bold">{formatCurrency(gastosManoObra)}</span></p>
+                <p className="text-text-muted text-sm mt-1">Subtotal: <span className="text-text-main font-bold">{isBalanceVisible ? formatCurrency(gastosManoObra) : '••••'}</span></p>
               </div>
             </div>
             <button
@@ -142,7 +160,7 @@ export default function PagosView({ navigate, activeObraId }: PagosViewProps) {
               </div>
               <div className="flex-1">
                 <h3 className="text-text-main font-semibold text-lg">Gastos Varios</h3>
-                <p className="text-text-muted text-sm mt-1">Subtotal: <span className="text-text-main font-bold">{formatCurrency(gastosVarios)}</span></p>
+                <p className="text-text-muted text-sm mt-1">Subtotal: <span className="text-text-main font-bold">{isBalanceVisible ? formatCurrency(gastosVarios) : '••••'}</span></p>
               </div>
             </div>
             <button
