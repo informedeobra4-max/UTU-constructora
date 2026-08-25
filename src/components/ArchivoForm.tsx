@@ -75,8 +75,8 @@ export default function ArchivoForm({ navigate, activeObraId, categoria }: Archi
       const fileExt = file.name.split('.').pop();
       const fileName = `${data.id}.${fileExt}`;
       const { error: uploadError } = await supabase.storage
-        .from('comprobantes')
-        .upload(`archivos_obra/${data.id}`, file, { upsert: true });
+        .from('archivos_obra')
+        .upload(data.id.toString(), file, { upsert: true });
 
       if (uploadError) throw uploadError;
 

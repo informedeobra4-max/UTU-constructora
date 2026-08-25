@@ -45,7 +45,7 @@ export default function PresupuestosForm({ navigate, activeObraId, editingPresup
           setEncargado(data.encargado);
           setSelectedObra(Number(data.obra_id) || 'general');
           if (data.has_image) {
-            const url = supabase.storage.from('comprobantes').getPublicUrl(`presupuestos/${data.id}`).data.publicUrl;
+            const url = supabase.storage.from('presupuestos').getPublicUrl(data.id.toString()).data.publicUrl;
             setImagePreview(url + '?t=' + new Date().getTime());
           }
         }
@@ -123,8 +123,8 @@ export default function PresupuestosForm({ navigate, activeObraId, editingPresup
     if (presId) {
       if (imageFile) {
         const { error: uploadError } = await supabase.storage
-          .from('comprobantes')
-          .upload(`presupuestos/${presId}`, imageFile, { contentType: imageFile.type, upsert: true });
+          .from('presupuestos')
+          .upload(`${presId}`, imageFile, { contentType: imageFile.type, upsert: true });
           
         if (uploadError) {
           console.error('Error subiendo imagen:', uploadError);
@@ -132,7 +132,7 @@ export default function PresupuestosForm({ navigate, activeObraId, editingPresup
         }
       } else if (!imageFile && !imagePreview && editingPresupuestoId) {
         // user removed the existing image during edit
-        await supabase.storage.from('comprobantes').remove([`presupuestos/${presId}`]);
+        await supabase.storage.from('presupuestos').remove([`${presId}`]);
       }
       setShowSuccess(true);
     }
