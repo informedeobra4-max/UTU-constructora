@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { ArrowLeft, Moon, Sun } from 'lucide-react';
+import { ArrowLeft, Moon, Sun, Info } from 'lucide-react';
 import { Screen } from '../types';
 import Logo from './Logo';
 
@@ -64,6 +64,22 @@ export default function Settings({ navigate }: SettingsProps) {
                 <p className="text-text-main font-bold">Modo Claro</p>
                 <p className="text-text-muted text-xs">Apariencia luminosa</p>
               </div>
+            </div>
+          </div>
+        </div>
+
+        <div className="bg-surface rounded-3xl p-6 border border-surface-hover shadow-sm transition-colors duration-300">
+          <h2 className="text-sm font-bold text-text-muted uppercase tracking-wider mb-6">Información</h2>
+          
+          <div className="flex items-center gap-3">
+            <div className="p-3 rounded-xl bg-blue-500/20 text-blue-500 transition-colors">
+              <Info className="w-6 h-6" />
+            </div>
+            <div>
+              <p className="text-text-main font-bold">Última Actualización</p>
+              <p className="text-text-muted text-xs font-medium">
+                {typeof __APP_UPDATE_TIME__ !== 'undefined' ? __APP_UPDATE_TIME__ : 'Desconocida'}
+              </p>
             </div>
           </div>
         </div>
