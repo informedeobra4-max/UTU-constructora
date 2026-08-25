@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { ArrowLeft, Edit2, Save, X, Camera, Upload, BookOpen } from 'lucide-react';
+import { ArrowLeft, Edit2, Save, X, Camera, Upload, BookOpen, Trash2 } from 'lucide-react';
 import { Screen } from '../types';
 import Logo from './Logo';
 import { supabase } from '../lib/supabaseClient';
@@ -71,6 +71,13 @@ export default function HistoriaUtuView({ navigate }: HistoriaUtuViewProps) {
     }
   };
 
+  const handleDeleteMedia = () => {
+    if (confirm('¿Quitar archivo multimedia?')) {
+      setFile(null);
+      setMediaUrl(null);
+    }
+  };
+
   const handleSave = async () => {
     setIsSaving(true);
     try {
@@ -115,6 +122,9 @@ export default function HistoriaUtuView({ navigate }: HistoriaUtuViewProps) {
           .upload(currentRecordId.toString(), file, { upsert: true });
 
         if (uploadError) throw uploadError;
+      } else if (!file && !mediaUrl && currentRecordId) {
+        // Delete file from storage if removed
+        await supabase.storage.from('archivos_obra').remove([currentRecordId.toString()]);
       }
 
       setIsEditing(false);
@@ -179,6 +189,12 @@ export default function HistoriaUtuView({ navigate }: HistoriaUtuViewProps) {
                     <span className="text-xs font-bold uppercase tracking-wider">Archivo</span>
                     <input type="file" accept="image/*,video/*" className="hidden" onChange={handleFileUpload} />
                   </label>
+                  {mediaUrl && (
+                    <button onClick={handleDeleteMedia} className="flex flex-col items-center justify-center p-4 bg-red-500/80 rounded-xl cursor-pointer hover:bg-red-600 hover:text-white transition-colors text-white">
+                      <Trash2 className="w-6 h-6 mb-2" />
+                      <span className="text-xs font-bold uppercase tracking-wider">Borrar</span>
+                    </button>
+                  )}
                 </div>
               )}
             </div>
