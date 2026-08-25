@@ -17,6 +17,7 @@ export default function GastosView({ navigate, activeObraId, setEditingGastoId }
   const [isLoading, setIsLoading] = useState(true);
   const [failedImages, setFailedImages] = useState<Record<string, boolean>>({});
   const [activeObraName, setActiveObraName] = useState<string>('General');
+  const [refreshCounter, setRefreshCounter] = useState(0);
   
   const [isBalanceVisible, setIsBalanceVisible] = useState<boolean>(() => {
     const saved = localStorage.getItem('isBalanceVisible');
@@ -41,7 +42,20 @@ export default function GastosView({ navigate, activeObraId, setEditingGastoId }
       fetchExpenses();
     };
     init();
-  }, [activeObraId]);
+  }, [activeObraId, refreshCounter]);
+
+  useEffect(() => {
+    const channel = supabase
+      .channel('gastos_realtime')
+      .on('postgres_changes', { event: '*', schema: 'public', table: 'gastos' }, () => {
+        setRefreshCounter(c => c + 1);
+      })
+      .subscribe();
+      
+    return () => {
+      supabase.removeChannel(channel);
+    };
+  }, []);
 
   const fetchExpenses = async () => {
     setIsLoading(true);

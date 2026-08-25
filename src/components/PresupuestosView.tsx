@@ -14,6 +14,7 @@ export default function PresupuestosView({ navigate, activeObraId, setEditingPre
   const [presupuestos, setPresupuestos] = useState<any[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [activeObraName, setActiveObraName] = useState('Obra General');
+  const [refreshCounter, setRefreshCounter] = useState(0);
 
   useEffect(() => {
     const init = async () => {
@@ -41,7 +42,20 @@ export default function PresupuestosView({ navigate, activeObraId, setEditingPre
     };
 
     init();
-  }, [activeObraId]);
+  }, [activeObraId, refreshCounter]);
+
+  useEffect(() => {
+    const channel = supabase
+      .channel('presupuestos_realtime')
+      .on('postgres_changes', { event: '*', schema: 'public', table: 'presupuestos' }, () => {
+        setRefreshCounter(c => c + 1);
+      })
+      .subscribe();
+      
+    return () => {
+      supabase.removeChannel(channel);
+    };
+  }, []);
 
   const handleDelete = async (id: number) => {
     if (confirm('¿Seguro que deseas eliminar este presupuesto?')) {

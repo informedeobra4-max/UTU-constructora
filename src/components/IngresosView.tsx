@@ -13,6 +13,7 @@ export default function IngresosView({ navigate, activeObraId }: IngresosViewPro
   const [ingresos, setIngresos] = useState<any[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [activeObraName, setActiveObraName] = useState('Obra General');
+  const [refreshCounter, setRefreshCounter] = useState(0);
 
   useEffect(() => {
     const init = async () => {
@@ -39,7 +40,20 @@ export default function IngresosView({ navigate, activeObraId }: IngresosViewPro
     };
 
     init();
-  }, [activeObraId]);
+  }, [activeObraId, refreshCounter]);
+
+  useEffect(() => {
+    const channel = supabase
+      .channel('ingresos_realtime')
+      .on('postgres_changes', { event: '*', schema: 'public', table: 'ingresos' }, () => {
+        setRefreshCounter(c => c + 1);
+      })
+      .subscribe();
+      
+    return () => {
+      supabase.removeChannel(channel);
+    };
+  }, []);
 
   const handleDelete = async (id: number) => {
     const pin = prompt('Se requiere autorización para eliminar un ingreso. Ingrese el PIN de 4 dígitos:');

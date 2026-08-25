@@ -148,7 +148,7 @@ export default function HorizontalCalendar({
                   day.isToday ? 'text-primary' : 'text-text-muted hover:text-text-main'
                 } ${isCenter ? 'scale-[1.3] z-10 text-primary drop-shadow-[0_0_8px_rgba(255,107,0,0.5)]' : 'scale-90 opacity-60'}`}
               >
-                <span className={`text-[10px] font-bold uppercase mb-0.5 ${isCenter ? 'text-primary' : ''}`}>{dayName}</span>
+                <span translate="no" className={`text-[10px] font-bold uppercase mb-0.5 ${isCenter ? 'text-primary' : ''}`}>{dayName}</span>
                 <span className={`font-black ${isCenter ? 'text-2xl' : 'text-sm'}`}>
                   {dayNum}
                 </span>

@@ -36,6 +36,7 @@ export default function ObrasList({ navigate, setActiveObraId }: ObrasListProps)
     const saved = localStorage.getItem('cotizacionDolar');
     return saved ? parseFloat(saved) : 1000;
   });
+  const [globalRefreshCounter, setGlobalRefreshCounter] = useState(0);
 
   useEffect(() => {
     const fetchObras = async () => {
@@ -89,9 +90,11 @@ export default function ObrasList({ navigate, setActiveObraId }: ObrasListProps)
       }
     };
     fetchGlobalDolar();
+  }, [globalRefreshCounter]);
 
+  useEffect(() => {
     // Subscribe to realtime updates for global config
-    const channel = supabase
+    const channelConfig = supabase
       .channel('global_config_updates')
       .on('postgres_changes', { 
         event: 'INSERT', 
@@ -109,8 +112,16 @@ export default function ObrasList({ navigate, setActiveObraId }: ObrasListProps)
       })
       .subscribe();
 
+    const channelData = supabase
+      .channel('obraslist_data_updates')
+      .on('postgres_changes', { event: '*', schema: 'public', table: 'gastos' }, () => setGlobalRefreshCounter(c => c + 1))
+      .on('postgres_changes', { event: '*', schema: 'public', table: 'ingresos' }, () => setGlobalRefreshCounter(c => c + 1))
+      .on('postgres_changes', { event: '*', schema: 'public', table: 'obras' }, () => setGlobalRefreshCounter(c => c + 1))
+      .subscribe();
+
     return () => {
-      supabase.removeChannel(channel);
+      supabase.removeChannel(channelConfig);
+      supabase.removeChannel(channelData);
     };
   }, []);
 
@@ -181,7 +192,7 @@ export default function ObrasList({ navigate, setActiveObraId }: ObrasListProps)
     if (obras.length > 0) {
       fetchFinances();
     }
-  }, [obras, cotizacionDolar]);
+  }, [obras, cotizacionDolar, globalRefreshCounter]);
 
   const handleCotizacionChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const val = parseFloat(e.target.value) || 0;
