@@ -30,7 +30,9 @@ export default function HistoriaUtuView({ navigate }: HistoriaUtuViewProps) {
       .select('*')
       .eq('obra_id', '0')
       .eq('categoria', 'HISTORIA')
-      .single();
+      .order('id', { ascending: false })
+      .limit(1)
+      .maybeSingle();
 
     if (!error && data) {
       setRecordId(data.id);
@@ -81,10 +83,37 @@ export default function HistoriaUtuView({ navigate }: HistoriaUtuViewProps) {
   const handleSave = async () => {
     setIsSaving(true);
     try {
-      let currentRecordId = recordId;
+      let targetRecordId = recordId;
 
-      if (!currentRecordId) {
-        // Create new record
+      if (recordId) {
+        // Para evitar problemas de permisos de UPDATE en Supabase (RLS policies), 
+        // creamos un registro nuevo, copiamos el archivo si se mantiene, y borramos el viejo.
+        const { data: newRecord, error: insertError } = await supabase
+          .from('archivos_obra')
+          .insert([{
+            obra_id: '0',
+            categoria: 'HISTORIA',
+            subcategoria: 'UTU',
+            nombre: historyText,
+            tipo: file ? (file.type.includes('video') ? 'video' : 'image') : mediaType,
+            has_file: !!file || !!mediaUrl
+          }])
+          .select()
+          .single();
+
+        if (insertError) throw insertError;
+        targetRecordId = newRecord.id;
+
+        // Si mantenemos la imagen/video viejo (no subimos uno nuevo pero mediaUrl existe)
+        if (!file && mediaUrl) {
+          await supabase.storage.from('archivos_obra').copy(recordId.toString(), targetRecordId.toString());
+        }
+
+        // Borramos el registro viejo y su archivo
+        await supabase.from('archivos_obra').delete().eq('id', recordId);
+        await supabase.storage.from('archivos_obra').remove([recordId.toString()]);
+      } else {
+        // Create completely new record
         const { data, error } = await supabase
           .from('archivos_obra')
           .insert([{
@@ -99,32 +128,18 @@ export default function HistoriaUtuView({ navigate }: HistoriaUtuViewProps) {
           .single();
 
         if (error) throw error;
-        currentRecordId = data.id;
-        setRecordId(currentRecordId);
-      } else {
-        // Update existing record
-        const { error } = await supabase
-          .from('archivos_obra')
-          .update({
-            nombre: historyText,
-            tipo: file ? (file.type.includes('video') ? 'video' : 'image') : mediaType,
-            has_file: !!file || !!mediaUrl
-          })
-          .eq('id', currentRecordId);
-
-        if (error) throw error;
+        targetRecordId = data.id;
       }
 
+      setRecordId(targetRecordId);
+
       // Upload file if selected
-      if (file && currentRecordId) {
+      if (file && targetRecordId) {
         const { error: uploadError } = await supabase.storage
           .from('archivos_obra')
-          .upload(currentRecordId.toString(), file, { upsert: true });
+          .upload(targetRecordId.toString(), file, { upsert: true });
 
         if (uploadError) throw uploadError;
-      } else if (!file && !mediaUrl && currentRecordId) {
-        // Delete file from storage if removed
-        await supabase.storage.from('archivos_obra').remove([currentRecordId.toString()]);
       }
 
       setIsEditing(false);
