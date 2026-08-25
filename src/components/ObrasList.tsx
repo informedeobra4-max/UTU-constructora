@@ -1,5 +1,5 @@
 import React from 'react';
-import { Bell, ArrowRight, Plus, Calendar, Trash2, Edit2, Camera, X, DollarSign, Eye, EyeOff } from 'lucide-react';
+import { Bell, ArrowRight, Plus, Calendar, Trash2, Edit2, Camera, X, DollarSign, Eye, EyeOff, Settings, BookOpen } from 'lucide-react';
 import { useState, useEffect } from 'react';
 import { Screen } from '../types';
 import Logo from './Logo';
@@ -241,6 +241,9 @@ export default function ObrasList({ navigate, setActiveObraId }: ObrasListProps)
       <header className="flex items-center justify-between px-4 py-4 bg-background border-b border-surface sticky top-0 z-50">
         <Logo onClick={() => navigate('splash')} />
         <div className="flex items-center space-x-4 text-text-muted">
+          <button onClick={() => navigate('settings')} className="relative text-blue-500 hover:text-blue-400 transition-colors" title="Configuración">
+            <Settings className="w-6 h-6" />
+          </button>
           <button 
             onClick={() => { setActiveObraId('general'); navigate('calendar'); }} 
             className="relative hover:text-text-main transition-colors"
@@ -311,9 +314,14 @@ export default function ObrasList({ navigate, setActiveObraId }: ObrasListProps)
       <main className="px-4 py-8 max-w-md mx-auto space-y-6 relative min-h-[500px]">
         {/* Full Date Header */}
         <div className="mb-2">
-          <h2 className="text-xl font-bold text-text-main capitalize">
-            {new Date().toLocaleDateString('es-AR', { weekday: 'long', day: 'numeric', month: 'long' })}
-          </h2>
+          <div className="flex items-center gap-3">
+            <h2 className="text-xl font-bold text-text-main capitalize">
+              {new Date().toLocaleDateString('es-AR', { weekday: 'long', day: 'numeric', month: 'long' })}
+            </h2>
+            <button onClick={() => navigate('historia_utu')} className="text-yellow-500 hover:text-yellow-400 transition-colors bg-yellow-500/10 p-1.5 rounded-full" title="Historia de UTU">
+              <BookOpen className="w-5 h-5" />
+            </button>
+          </div>
           <p className="text-sm text-text-muted">Gestión de Obras</p>
         </div>
 

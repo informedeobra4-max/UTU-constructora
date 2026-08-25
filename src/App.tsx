@@ -26,6 +26,8 @@ import ArchivoForm from './components/ArchivoForm';
 import SplashScreen from './components/SplashScreen';
 import PWAInstallButton from './components/PWAInstallButton';
 import GastoEditForm from './components/GastoEditForm';
+import Settings from './components/Settings';
+import HistoriaUtuView from './components/HistoriaUtuView';
 import { Screen } from './types';
 
 export default function App() {
@@ -34,13 +36,33 @@ export default function App() {
   const [activeObraId, setActiveObraId] = useState<number | 'general'>('general');
   const [editingGastoId, setEditingGastoId] = useState<string | null>(null);
   const [categoriaArchivos, setCategoriaArchivos] = useState<string>('PLANOS');
+  const [theme, setTheme] = useState(localStorage.getItem('theme') || 'dark');
+
+  useEffect(() => {
+    const handleThemeChange = () => {
+      setTheme(localStorage.getItem('theme') || 'dark');
+    };
+    window.addEventListener('theme-change', handleThemeChange);
+    return () => window.removeEventListener('theme-change', handleThemeChange);
+  }, []);
+
+  useEffect(() => {
+    const isAlwaysDarkScreen = currentScreen === 'splash' || currentScreen === 'login';
+    if (theme === 'light' && !isAlwaysDarkScreen) {
+      document.body.classList.add('light');
+    } else {
+      document.body.classList.remove('light');
+    }
+  }, [theme, currentScreen]);
 
   useEffect(() => {
     const runOneSignal = async () => {
       try {
         await OneSignal.init({
           appId: "9b92265d-0524-450b-98c4-679b5d57d0f6",
-          allowLocalhostAsSecureOrigin: true
+          allowLocalhostAsSecureOrigin: true,
+          serviceWorkerPath: 'sw.js',
+          serviceWorkerParam: { scope: '/' }
         });
         
         // Listen for foreground push notifications and play sound
@@ -106,6 +128,9 @@ export default function App() {
       {currentScreen === 'info_obra' && <InfoObraView navigate={navigate} activeObraId={activeObraId} setCategoriaArchivos={setCategoriaArchivos} />}
       {currentScreen === 'archivos_categoria' && <ArchivosCategoriaView navigate={navigate} activeObraId={activeObraId} categoria={categoriaArchivos} />}
       {currentScreen === 'archivo_form' && <ArchivoForm navigate={navigate} activeObraId={activeObraId} categoria={categoriaArchivos} />}
+      {currentScreen === 'settings' && <Settings navigate={navigate} />}
+      {currentScreen === 'historia_utu' && <HistoriaUtuView navigate={navigate} />}
+      
       
       {currentScreen !== 'splash' && (
         <div className="fixed bottom-0 left-0 w-full py-1.5 bg-background border-t border-surface z-[100] text-center no-print flex items-center justify-center">

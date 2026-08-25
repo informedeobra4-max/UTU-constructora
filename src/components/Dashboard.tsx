@@ -1,4 +1,4 @@
-import { ArrowLeft, Bell, Wallet, FileSpreadsheet, DollarSign, TrendingDown, Landmark, Paperclip } from 'lucide-react';
+import { ArrowLeft, Bell, Wallet, FileSpreadsheet, DollarSign, TrendingDown, Landmark, Paperclip, Settings, BookOpen } from 'lucide-react';
 import React, { useState, useEffect } from 'react';
 import { Screen } from '../types';
 import Logo from './Logo';
@@ -93,6 +93,9 @@ export default function Dashboard({ navigate, activeObraId }: DashboardProps) {
         </div>
         <h1 className="text-text-main font-semibold text-lg truncate flex-1 mx-4 text-center hidden md:block">{obraName}</h1>
         <div className="flex items-center space-x-4 text-text-muted">
+          <button onClick={() => navigate('settings')} className="relative text-blue-500 hover:text-blue-400 transition-colors" title="Configuración">
+            <Settings className="w-6 h-6" />
+          </button>
           <button onClick={() => navigate('info_obra')} className="relative hover:text-text-main transition-colors text-blue-400">
             <Paperclip className="w-6 h-6" />
           </button>
@@ -107,9 +110,14 @@ export default function Dashboard({ navigate, activeObraId }: DashboardProps) {
 
         {/* Full Date Header */}
         <div>
-          <h2 className="text-xl font-bold text-text-main capitalize">
-            {new Date().toLocaleDateString('es-AR', { weekday: 'long', day: 'numeric', month: 'long' })}
-          </h2>
+          <div className="flex items-center gap-3">
+            <h2 className="text-xl font-bold text-text-main capitalize">
+              {new Date().toLocaleDateString('es-AR', { weekday: 'long', day: 'numeric', month: 'long' })}
+            </h2>
+            <button onClick={() => navigate('historia_utu')} className="text-yellow-500 hover:text-yellow-400 transition-colors bg-yellow-500/10 p-1.5 rounded-full" title="Historia de UTU">
+              <BookOpen className="w-5 h-5" />
+            </button>
+          </div>
           <p className="text-sm text-text-muted">Obra Activa: {obraName}</p>
         </div>
 

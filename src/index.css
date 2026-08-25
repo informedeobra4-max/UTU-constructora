@@ -23,6 +23,18 @@
 }
 
 @layer base {
+  body.light {
+    --color-background: #F9FAFB;
+    --color-background-alt: #FFFFFF;
+    --color-surface: #FFFFFF;
+    --color-surface-hover: #F3F4F6;
+    --color-text-main: #111827;
+    --color-text-muted: #6B7280;
+    --color-secondary: #9CA3AF;
+  }
+}
+
+@layer base {
   body {
     @apply bg-background text-text-main font-sans antialiased;
   }

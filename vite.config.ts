@@ -38,6 +38,7 @@ export default defineConfig(() => {
           ]
         },
         workbox: {
+          importScripts: ["https://cdn.onesignal.com/sdks/web/v16/OneSignalSDK.sw.js"],
           cleanupOutdatedCaches: true,
           skipWaiting: true,
           clientsClaim: true,
