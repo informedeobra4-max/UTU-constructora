@@ -144,7 +144,7 @@ export default function PresupuestosView({ navigate, activeObraId, setEditingPre
               {p.has_image && (
                 <div className="pt-3 mt-2 border-t border-surface-hover">
                   <button 
-                    onClick={() => window.open(supabase.storage.from('presupuestos').getPublicUrl(p.id.toString()).data.publicUrl, '_blank')}
+                    onClick={() => window.open(supabase.storage.from('comprobantes').getPublicUrl(`presupuestos/${p.id}`).data.publicUrl, '_blank')}
                     className="w-full flex items-center justify-center gap-2 bg-background-alt hover:bg-surface border border-surface-hover py-2.5 rounded-xl text-blue-500 font-bold text-xs uppercase tracking-widest transition-colors"
                   >
                     <FileSpreadsheet className="w-4 h-4" />

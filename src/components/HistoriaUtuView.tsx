@@ -40,8 +40,8 @@ export default function HistoriaUtuView({ navigate }: HistoriaUtuViewProps) {
       if (data.has_file) {
         setMediaType(data.tipo === 'video' ? 'video' : 'image');
         const { data: publicUrl } = supabase.storage
-          .from('archivos_obra')
-          .getPublicUrl(data.id.toString());
+          .from('comprobantes')
+          .getPublicUrl(`archivos_obra/${data.id}`);
         setMediaUrl(publicUrl.publicUrl + '?t=' + new Date().getTime());
       }
     }
@@ -106,12 +106,12 @@ export default function HistoriaUtuView({ navigate }: HistoriaUtuViewProps) {
 
         // Si mantenemos la imagen/video viejo (no subimos uno nuevo pero mediaUrl existe)
         if (!file && mediaUrl) {
-          await supabase.storage.from('archivos_obra').copy(recordId.toString(), targetRecordId.toString());
+          await supabase.storage.from('comprobantes').copy(`archivos_obra/${recordId}`, `archivos_obra/${targetRecordId}`);
         }
 
         // Borramos el registro viejo y su archivo
         await supabase.from('archivos_obra').delete().eq('id', recordId);
-        await supabase.storage.from('archivos_obra').remove([recordId.toString()]);
+        await supabase.storage.from('comprobantes').remove([`archivos_obra/${recordId}`]);
       } else {
         // Create completely new record
         const { data, error } = await supabase
@@ -136,8 +136,8 @@ export default function HistoriaUtuView({ navigate }: HistoriaUtuViewProps) {
       // Upload file if selected
       if (file && targetRecordId) {
         const { error: uploadError } = await supabase.storage
-          .from('archivos_obra')
-          .upload(targetRecordId.toString(), file, { upsert: true });
+          .from('comprobantes')
+          .upload(`archivos_obra/${targetRecordId}`, file, { upsert: true });
 
         if (uploadError) throw uploadError;
       }

@@ -77,7 +77,7 @@ export default function ArchivosCategoriaView({ navigate, activeObraId, categori
   };
 
   const getFileUrl = (id: string) => {
-    return supabase.storage.from('archivos_obra').getPublicUrl(id).data.publicUrl;
+    return supabase.storage.from('comprobantes').getPublicUrl(`archivos_obra/${id}`).data.publicUrl;
   };
 
   const getColorClass = () => {
