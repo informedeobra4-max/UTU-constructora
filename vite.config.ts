@@ -8,7 +8,7 @@ export default defineConfig(() => {
   return {
     base: '/',
     define: {
-      __APP_UPDATE_TIME__: JSON.stringify(new Date().toLocaleString('es-AR', { dateStyle: 'short', timeStyle: 'short' }))
+      __APP_UPDATE_TIME__: JSON.stringify(new Date().toLocaleString('es-AR', { timeZone: 'America/Argentina/Buenos_Aires', dateStyle: 'short', timeStyle: 'short' }))
     },
     plugins: [
       react(), 
