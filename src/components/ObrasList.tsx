@@ -161,7 +161,7 @@ export default function ObrasList({ navigate, setActiveObraId }: ObrasListProps)
       setGlobalGastosUSD(totalGastosUSD);
 
       // 2. Fetch Ingresos
-      const { data: ingresos, error: errIngresos } = await supabase.from('ingresos').select('monto, moneda, cotizacion_dolar');
+      const { data: ingresos, error: errIngresos } = await supabase.from('ingresos').select('*');
       if (errIngresos) console.error('Error fetching ingresos:', errIngresos);
 
       let totalInARS = 0;
