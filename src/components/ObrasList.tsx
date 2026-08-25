@@ -69,6 +69,49 @@ export default function ObrasList({ navigate, setActiveObraId }: ObrasListProps)
       }
     };
     fetchNotifications();
+
+    const fetchGlobalDolar = async () => {
+      const { data, error } = await supabase
+        .from('archivos_obra')
+        .select('*')
+        .eq('categoria', 'GLOBAL_CONFIG')
+        .eq('subcategoria', 'DOLAR')
+        .order('id', { ascending: false })
+        .limit(1)
+        .maybeSingle();
+
+      if (data && !error && data.nombre) {
+        const globalVal = parseFloat(data.nombre);
+        if (!isNaN(globalVal)) {
+          setCotizacionDolar(globalVal);
+          localStorage.setItem('cotizacionDolar', globalVal.toString());
+        }
+      }
+    };
+    fetchGlobalDolar();
+
+    // Subscribe to realtime updates for global config
+    const channel = supabase
+      .channel('global_config_updates')
+      .on('postgres_changes', { 
+        event: 'INSERT', 
+        schema: 'public', 
+        table: 'archivos_obra',
+        filter: "categoria=eq.GLOBAL_CONFIG"
+      }, (payload) => {
+        if (payload.new && payload.new.subcategoria === 'DOLAR') {
+          const globalVal = parseFloat(payload.new.nombre);
+          if (!isNaN(globalVal)) {
+            setCotizacionDolar(globalVal);
+            localStorage.setItem('cotizacionDolar', globalVal.toString());
+          }
+        }
+      })
+      .subscribe();
+
+    return () => {
+      supabase.removeChannel(channel);
+    };
   }, []);
 
   useEffect(() => {
@@ -82,7 +125,7 @@ export default function ObrasList({ navigate, setActiveObraId }: ObrasListProps)
       let totalGastosUSDConvertedToARS = 0;
       obras.forEach(obra => totalsPorObra[obra.id] = 0);
 
-      const currentDolar = parseFloat(localStorage.getItem('cotizacionDolar') || '1000');
+      const currentDolar = cotizacionDolar;
 
       gastos?.forEach(gasto => {
         const amt = gasto.amount || 0;
@@ -138,12 +181,35 @@ export default function ObrasList({ navigate, setActiveObraId }: ObrasListProps)
     if (obras.length > 0) {
       fetchFinances();
     }
-  }, [obras]);
+  }, [obras, cotizacionDolar]);
 
   const handleCotizacionChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const val = parseFloat(e.target.value) || 0;
     setCotizacionDolar(val);
     localStorage.setItem('cotizacionDolar', val.toString());
+  };
+
+  const handleCotizacionBlur = async () => {
+    const { data } = await supabase
+        .from('archivos_obra')
+        .select('id')
+        .eq('categoria', 'GLOBAL_CONFIG')
+        .eq('subcategoria', 'DOLAR');
+
+    if (data) {
+      for (const row of data) {
+        await supabase.from('archivos_obra').delete().eq('id', row.id);
+      }
+    }
+
+    await supabase.from('archivos_obra').insert([{
+      obra_id: '0',
+      categoria: 'GLOBAL_CONFIG',
+      subcategoria: 'DOLAR',
+      nombre: cotizacionDolar.toString(),
+      tipo: 'config',
+      has_file: false
+    }]);
   };
 
   const toggleBalanceVisibility = () => {
@@ -369,6 +435,7 @@ export default function ObrasList({ navigate, setActiveObraId }: ObrasListProps)
                   type="number" 
                   value={cotizacionDolar || ''}
                   onChange={handleCotizacionChange}
+                  onBlur={handleCotizacionBlur}
                   className="w-full bg-transparent text-text-main text-xs font-bold focus:outline-none text-center p-0 m-0"
                 />
               </div>

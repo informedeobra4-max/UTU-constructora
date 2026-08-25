@@ -15,10 +15,6 @@ export default function Dashboard({ navigate, activeObraId }: DashboardProps) {
   const [gastosTotales, setGastosTotales] = useState(0);
   const [ingresosARS, setIngresosARS] = useState(0);
   const [ingresosUSD, setIngresosUSD] = useState(0);
-  const [cotizacionDolar, setCotizacionDolar] = useState<number>(() => {
-    const saved = localStorage.getItem('cotizacionDolar');
-    return saved ? parseFloat(saved) : 1000;
-  });
   const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
@@ -55,12 +51,6 @@ export default function Dashboard({ navigate, activeObraId }: DashboardProps) {
 
     init();
   }, [activeObraId]);
-
-  const handleCotizacionChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const val = parseFloat(e.target.value) || 0;
-    setCotizacionDolar(val);
-    localStorage.setItem('cotizacionDolar', val.toString());
-  };
 
   const formatCurrency = (amount: number) => {
     return new Intl.NumberFormat('es-AR', {
