@@ -1,4 +1,4 @@
-import { ArrowLeft, Plus, Building2, User, FileSpreadsheet, Trash2 } from 'lucide-react';
+import { ArrowLeft, Plus, Building2, User, FileSpreadsheet, Trash2, Edit2 } from 'lucide-react';
 import { useState, useEffect } from 'react';
 import { Screen } from '../types';
 import Logo from './Logo';
@@ -7,9 +7,10 @@ import { supabase } from '../lib/supabaseClient';
 interface PresupuestosViewProps {
   navigate: (screen: Screen) => void;
   activeObraId: number | 'general';
+  setEditingPresupuestoId: (id: number | null) => void;
 }
 
-export default function PresupuestosView({ navigate, activeObraId }: PresupuestosViewProps) {
+export default function PresupuestosView({ navigate, activeObraId, setEditingPresupuestoId }: PresupuestosViewProps) {
   const [presupuestos, setPresupuestos] = useState<any[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [activeObraName, setActiveObraName] = useState('Obra General');
@@ -101,9 +102,14 @@ export default function PresupuestosView({ navigate, activeObraId }: Presupuesto
                     </span>
                   </div>
                 </div>
-                <button onClick={() => handleDelete(p.id)} className="p-2 text-text-muted hover:text-red-500 transition-colors">
-                  <Trash2 className="w-4 h-4" />
-                </button>
+                <div className="flex gap-2">
+                  <button onClick={() => { setEditingPresupuestoId(p.id); navigate('presupuestos_form'); }} className="p-2 text-text-muted hover:text-blue-500 transition-colors">
+                    <Edit2 className="w-4 h-4" />
+                  </button>
+                  <button onClick={() => handleDelete(p.id)} className="p-2 text-text-muted hover:text-red-500 transition-colors">
+                    <Trash2 className="w-4 h-4" />
+                  </button>
+                </div>
               </div>
 
               <div className="bg-background-alt rounded-xl p-3 text-sm text-text-muted font-medium border border-surface-hover">
@@ -147,7 +153,7 @@ export default function PresupuestosView({ navigate, activeObraId }: Presupuesto
 
       <div className="fixed bottom-0 left-0 w-full p-4 bg-gradient-to-t from-background via-background to-transparent pb-8">
         <button 
-          onClick={() => navigate('presupuestos_form')}
+          onClick={() => { setEditingPresupuestoId(null); navigate('presupuestos_form'); }}
           className="w-full max-w-md mx-auto flex items-center justify-center gap-2 bg-blue-600 hover:bg-blue-500 text-white font-black uppercase tracking-widest py-4 rounded-xl shadow-[0_0_20px_rgba(37,99,235,0.3)] transition-all hover:scale-[1.02]"
         >
           <Plus className="w-5 h-5" />

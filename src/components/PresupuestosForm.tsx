@@ -9,9 +9,11 @@ import { supabase } from '../lib/supabaseClient';
 interface PresupuestosFormProps {
   navigate: (screen: Screen) => void;
   activeObraId: number | 'general';
+  editingPresupuestoId?: number | null;
+  setEditingPresupuestoId?: (id: number | null) => void;
 }
 
-export default function PresupuestosForm({ navigate, activeObraId }: PresupuestosFormProps) {
+export default function PresupuestosForm({ navigate, activeObraId, editingPresupuestoId, setEditingPresupuestoId }: PresupuestosFormProps) {
   const [empresa, setEmpresa] = useState('');
   const [costo, setCosto] = useState('');
   const [notas, setNotas] = useState('');
@@ -31,6 +33,26 @@ export default function PresupuestosForm({ navigate, activeObraId }: Presupuesto
     };
     fetchObras();
   }, []);
+
+  useEffect(() => {
+    if (editingPresupuestoId) {
+      const fetchPresupuesto = async () => {
+        const { data, error } = await supabase.from('presupuestos').select('*').eq('id', editingPresupuestoId).single();
+        if (data && !error) {
+          setEmpresa(data.empresa);
+          setCosto(data.costo.toString());
+          setNotas(data.notas || '');
+          setEncargado(data.encargado);
+          setSelectedObra(Number(data.obra_id) || 'general');
+          if (data.has_image) {
+            const url = supabase.storage.from('presupuestos').getPublicUrl(data.id.toString()).data.publicUrl;
+            setImagePreview(url + '?t=' + new Date().getTime());
+          }
+        }
+      };
+      fetchPresupuesto();
+    }
+  }, [editingPresupuestoId]);
 
   const handleImageUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
     if (e.target.files && e.target.files[0]) {
@@ -54,27 +76,51 @@ export default function PresupuestosForm({ navigate, activeObraId }: Presupuesto
     if (isSubmitting) return;
     setIsSubmitting(true);
 
-    const { data, error } = await supabase.from('presupuestos').insert([
-      {
+    let presId = editingPresupuestoId;
+
+    if (editingPresupuestoId) {
+      // UPDATE
+      const { error } = await supabase.from('presupuestos').update({
         obra_id: selectedObra.toString(),
         empresa: empresa,
         costo: parseFloat(costo) || 0,
         notas: notas,
         encargado: encargado,
-        estado: 'Pendiente',
-        has_image: !!imageFile
+        has_image: !!imageFile || !!imagePreview
+      }).eq('id', editingPresupuestoId);
+
+      if (error) {
+        console.error('Error Supabase:', error);
+        alert('Error en el servidor: ' + error.message);
+        setIsSubmitting(false);
+        return;
       }
-    ]).select();
+    } else {
+      // INSERT
+      const { data, error } = await supabase.from('presupuestos').insert([
+        {
+          obra_id: selectedObra.toString(),
+          empresa: empresa,
+          costo: parseFloat(costo) || 0,
+          notas: notas,
+          encargado: encargado,
+          estado: 'Pendiente',
+          has_image: !!imageFile
+        }
+      ]).select();
 
-    if (error) {
-      console.error('Error Supabase:', error);
-      alert('Error en el servidor: ' + error.message);
-      setIsSubmitting(false);
-      return;
-    } 
+      if (error) {
+        console.error('Error Supabase:', error);
+        alert('Error en el servidor: ' + error.message);
+        setIsSubmitting(false);
+        return;
+      } 
+      if (data && data.length > 0) {
+        presId = data[0].id;
+      }
+    }
 
-    if (data && data.length > 0) {
-      const presId = data[0].id;
+    if (presId) {
       if (imageFile) {
         const { error: uploadError } = await supabase.storage
           .from('presupuestos')
@@ -84,6 +130,9 @@ export default function PresupuestosForm({ navigate, activeObraId }: Presupuesto
           console.error('Error subiendo imagen:', uploadError);
           alert('El presupuesto se guardó, pero hubo un error al subir el archivo adjunto.');
         }
+      } else if (!imageFile && !imagePreview && editingPresupuestoId) {
+        // user removed the existing image during edit
+        await supabase.storage.from('presupuestos').remove([`${presId}`]);
       }
       setShowSuccess(true);
     }
@@ -92,6 +141,7 @@ export default function PresupuestosForm({ navigate, activeObraId }: Presupuesto
 
   const handleSuccessComplete = () => {
     setShowSuccess(false);
+    if (setEditingPresupuestoId) setEditingPresupuestoId(null);
     navigate('presupuestos_view');
   };
 
@@ -111,8 +161,8 @@ export default function PresupuestosForm({ navigate, activeObraId }: Presupuesto
 
       <main className="px-4 py-8 max-w-md mx-auto space-y-6 flex-1 w-full pb-32">
         <div>
-          <h2 className="text-2xl font-bold text-text-main">Cargar Presupuesto</h2>
-          <p className="text-text-muted mt-1 text-sm">Adjunta cotizaciones para tu obra</p>
+          <h2 className="text-2xl font-bold text-text-main">{editingPresupuestoId ? 'Editar Presupuesto' : 'Cargar Presupuesto'}</h2>
+          <p className="text-text-muted mt-1 text-sm">{editingPresupuestoId ? 'Modifica los datos del presupuesto' : 'Adjunta cotizaciones para tu obra'}</p>
         </div>
 
         {/* Formulario */}

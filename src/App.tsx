@@ -35,6 +35,7 @@ export default function App() {
   const [history, setHistory] = useState<Screen[]>(['splash']);
   const [activeObraId, setActiveObraId] = useState<number | 'general'>('general');
   const [editingGastoId, setEditingGastoId] = useState<string | null>(null);
+  const [editingPresupuestoId, setEditingPresupuestoId] = useState<number | null>(null);
   const [categoriaArchivos, setCategoriaArchivos] = useState<string>('PLANOS');
   const [theme, setTheme] = useState(localStorage.getItem('theme') || 'dark');
 
@@ -120,8 +121,8 @@ export default function App() {
       {currentScreen === 'gastos' && <GastosView navigate={navigate} activeObraId={activeObraId} setEditingGastoId={setEditingGastoId} />}
       {currentScreen === 'pagos_view' && <PagosView navigate={navigate} activeObraId={activeObraId} />}
       {currentScreen === 'gasto_edit' && <GastoEditForm navigate={navigate} activeObraId={activeObraId} editingGastoId={editingGastoId} />}
-      {currentScreen === 'presupuestos_view' && <PresupuestosView navigate={navigate} activeObraId={activeObraId} />}
-      {currentScreen === 'presupuestos_form' && <PresupuestosForm navigate={navigate} activeObraId={activeObraId} />}
+      {currentScreen === 'presupuestos_view' && <PresupuestosView navigate={navigate} activeObraId={activeObraId} setEditingPresupuestoId={setEditingPresupuestoId} />}
+      {currentScreen === 'presupuestos_form' && <PresupuestosForm navigate={navigate} activeObraId={activeObraId} editingPresupuestoId={editingPresupuestoId} setEditingPresupuestoId={setEditingPresupuestoId} />}
       {currentScreen === 'ingresos_view' && <IngresosView navigate={navigate} activeObraId={activeObraId} />}
       {currentScreen === 'ingresos_form' && <IngresosForm navigate={navigate} activeObraId={activeObraId} defaultCurrency="ARS" />}
       {currentScreen === 'ingresos_form_usd' && <IngresosForm navigate={navigate} activeObraId={activeObraId} defaultCurrency="USD" />}
