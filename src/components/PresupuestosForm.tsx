@@ -122,9 +122,12 @@ export default function PresupuestosForm({ navigate, activeObraId, editingPresup
 
     if (presId) {
       if (imageFile) {
+        if (editingPresupuestoId) {
+          await supabase.storage.from('presupuestos').remove([`${presId}`]);
+        }
         const { error: uploadError } = await supabase.storage
           .from('presupuestos')
-          .upload(`${presId}`, imageFile, { contentType: imageFile.type, upsert: true });
+          .upload(`${presId}`, imageFile, { contentType: imageFile.type });
           
         if (uploadError) {
           console.error('Error subiendo imagen:', uploadError);

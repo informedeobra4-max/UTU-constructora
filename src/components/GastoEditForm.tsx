@@ -123,10 +123,11 @@ export default function GastoEditForm({ navigate, activeObraId, editingGastoId }
       return;
     } 
 
-    if (imageFile && editingGastoId) {
+    if (imageFile) {
+      await supabase.storage.from('comprobantes').remove([`${editingGastoId}`]);
       const { error: uploadError } = await supabase.storage
         .from('comprobantes')
-        .upload(`${editingGastoId}`, imageFile, { contentType: imageFile.type, upsert: true });
+        .upload(`${editingGastoId}`, imageFile, { contentType: imageFile.type });
         
       if (uploadError) {
         console.error('Error subiendo imagen:', uploadError);
