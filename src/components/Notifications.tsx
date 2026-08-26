@@ -155,18 +155,7 @@ export default function Notifications({ navigate }: NotificationsProps) {
           <div className="flex items-center justify-between">
             <h2 className="text-sm font-bold text-text-muted uppercase tracking-wider">Bandeja de Entrada</h2>
             <button 
-              onClick={() => {
-                if (confirm('Esto actualizará la aplicación a la última versión. No perderás ningún dato guardado en la nube. ¿Continuar?')) {
-                  if ('serviceWorker' in navigator) {
-                    navigator.serviceWorker.getRegistrations().then(regs => {
-                      regs.forEach(reg => reg.update());
-                    });
-                  }
-                  setTimeout(() => {
-                    window.location.reload();
-                  }, 500);
-                }
-              }}
+              onClick={loadData}
               className="flex items-center gap-1.5 px-3 py-1.5 text-xs font-bold text-primary bg-primary/10 rounded-lg hover:bg-primary/20 transition-colors"
             >
               <RefreshCw className="w-3.5 h-3.5" />

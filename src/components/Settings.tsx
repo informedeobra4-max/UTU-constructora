@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { ArrowLeft, Moon, Sun, Info } from 'lucide-react';
+import { ArrowLeft, Moon, Sun, Info, RefreshCw } from 'lucide-react';
 import { Screen } from '../types';
 import Logo from './Logo';
 
@@ -69,14 +69,33 @@ export default function Settings({ navigate }: SettingsProps) {
         </div>
 
         <div className="bg-surface rounded-3xl p-6 border border-surface-hover shadow-sm transition-colors duration-300">
-          <h2 className="text-sm font-bold text-text-muted uppercase tracking-wider mb-6">Información</h2>
+          <h2 className="text-sm font-bold text-text-muted uppercase tracking-wider mb-6">Información y Sistema</h2>
           
-          <div className="flex items-center gap-3">
+          <button 
+            onClick={() => {
+              if (confirm('Esto forzará la descarga de la última versión de la aplicación. No perderás ningún dato guardado en la nube. ¿Continuar?')) {
+                if ('serviceWorker' in navigator) {
+                  navigator.serviceWorker.getRegistrations().then(regs => {
+                    regs.forEach(reg => reg.update());
+                  });
+                }
+                setTimeout(() => {
+                  window.location.reload();
+                }, 500);
+              }
+            }}
+            className="w-full flex items-center justify-center gap-2 px-4 py-3 mb-6 text-sm font-bold text-white bg-blue-500 rounded-xl hover:bg-blue-600 transition-colors shadow-sm"
+          >
+            <RefreshCw className="w-5 h-5" />
+            FORZAR ACTUALIZACIÓN DE LA APP
+          </button>
+
+          <div className="flex items-center gap-3 pt-6 border-t border-surface-hover">
             <div className="p-3 rounded-xl bg-blue-500/20 text-blue-500 transition-colors">
               <Info className="w-6 h-6" />
             </div>
             <div>
-              <p className="text-text-main font-bold">Última Actualización</p>
+              <p className="text-text-main font-bold">Última Actualización Instalada</p>
               <p className="text-text-muted text-xs font-medium">
                 {typeof __APP_UPDATE_TIME__ !== 'undefined' ? __APP_UPDATE_TIME__ : 'Desconocida'}
               </p>
