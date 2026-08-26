@@ -18,6 +18,7 @@ export default function GastosView({ navigate, activeObraId, setEditingGastoId }
   const [failedImages, setFailedImages] = useState<Record<string, boolean>>({});
   const [activeObraName, setActiveObraName] = useState<string>('General');
   const [refreshCounter, setRefreshCounter] = useState(0);
+  const [sessionTime] = useState(Date.now());
   
   const [isBalanceVisible, setIsBalanceVisible] = useState<boolean>(() => {
     const saved = localStorage.getItem('isBalanceVisible');
@@ -234,11 +235,11 @@ export default function GastosView({ navigate, activeObraId, setEditingGastoId }
                   {!failedImages[exp.id] && (
                     <div className="mt-3 relative w-20 h-20 rounded-lg overflow-hidden border border-surface-hover">
                       <img 
-                        src={supabase.storage.from('comprobantes').getPublicUrl(exp.id).data.publicUrl} 
+                        src={supabase.storage.from('comprobantes').getPublicUrl(exp.id).data.publicUrl + '?t=' + sessionTime} 
                         alt="Comprobante" 
                         className="w-full h-full object-cover cursor-pointer"
                         onError={() => setFailedImages(prev => ({ ...prev, [exp.id]: true }))}
-                        onClick={() => window.open(supabase.storage.from('comprobantes').getPublicUrl(exp.id).data.publicUrl, '_blank')}
+                        onClick={() => window.open(supabase.storage.from('comprobantes').getPublicUrl(exp.id).data.publicUrl + '?t=' + sessionTime, '_blank')}
                       />
                     </div>
                   )}

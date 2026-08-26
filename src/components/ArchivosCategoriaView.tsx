@@ -161,7 +161,7 @@ export default function ArchivosCategoriaView({ navigate, activeObraId, categori
 
             <div className="flex flex-col gap-2 justify-center shrink-0 border-l border-surface-hover pl-3">
               <button 
-                onClick={() => window.open(getFileUrl(archivo.id.toString()), '_blank')}
+                onClick={() => window.open(getFileUrl(archivo.id.toString()) + '?t=' + Date.now(), '_blank')}
                 className={`p-2 rounded-lg hover:bg-background-alt transition-colors ${textColor}`}
                 title="Descargar / Ver"
               >
